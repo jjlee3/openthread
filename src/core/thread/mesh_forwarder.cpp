@@ -1453,7 +1453,7 @@ exit:
     {
         otLogDebgMacErr(error, "Dropping received frame");
     }
-    
+
     otLogFuncExitErr(error);
 }
 
@@ -1520,7 +1520,7 @@ exit:
             message->Free();
         }
     }
-    
+
     otLogFuncExitErr(error);
 }
 
