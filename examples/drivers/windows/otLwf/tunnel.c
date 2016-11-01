@@ -1244,14 +1244,12 @@ otLwfGetTunProp(
         WaitTimeout.QuadPart = -1000 * 10000;
 
         // Wait for the response
-        if (!NT_SUCCESS(
-            KeWaitForSingleObject(
+        if (KeWaitForSingleObject(
                 &Context.CompletionEvent,
                 Executive,
                 KernelMode,
                 FALSE,
-                &WaitTimeout)
-            ))
+                &WaitTimeout) != STATUS_SUCCESS)
         {
             if (!otLwfCancelCommandHandler(pFilter, FALSE, tid))
             {
@@ -1378,14 +1376,12 @@ otLwfSetTunProp(
         WaitTimeout.QuadPart = -1000 * 10000;
 
         // Wait for the response
-        if (!NT_SUCCESS(
-            KeWaitForSingleObject(
+        if (KeWaitForSingleObject(
                 &Context.CompletionEvent,
                 Executive,
                 KernelMode,
                 FALSE,
-                &WaitTimeout)
-            ))
+                &WaitTimeout) != STATUS_SUCCESS)
         {
             if (!otLwfCancelCommandHandler(pFilter, FALSE, tid))
             {
