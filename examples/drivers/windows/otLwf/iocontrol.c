@@ -514,7 +514,7 @@ otLwfTunIoCtl_otInterface(
         {
             // Make sure our addresses are in sync
             (void)otLwfInitializeAddresses(pFilter);
-            otLwfAddressesUpdated(pFilter);
+            // TODO - otLwfAddressesUpdated(pFilter);
         }
 
         status = 
