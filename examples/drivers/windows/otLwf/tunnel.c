@@ -487,6 +487,9 @@ otLwfProcessSpinelValueInserted(
             NotifEntry->Notif.NotifType = OTLWF_NOTIF_ACTIVE_SCAN;
             NotifEntry->Notif.ActiveScanPayload.Valid = TRUE;
 
+            const uint8_t *aExtAddr = NULL;
+            const uint8_t *aExtPanId = NULL;
+            const char *aNetworkName = NULL;
             unsigned int xpanid_len = 0;
             
             //chan,rssi,(laddr,saddr,panid,lqi),(proto,flags,networkid,xpanid) [CcT(ESSC)T(iCUD.).]
@@ -496,18 +499,28 @@ otLwfProcessSpinelValueInserted(
                     "CcT(ESSC.)T(iCUD.).",
                     &NotifEntry->Notif.ActiveScanPayload.Results.mChannel,
                     &NotifEntry->Notif.ActiveScanPayload.Results.mRssi,
-                    &NotifEntry->Notif.ActiveScanPayload.Results.mExtAddress.m8,
+                    &aExtAddr,
                     NULL, // saddr (don't care)
                     &NotifEntry->Notif.ActiveScanPayload.Results.mPanId,
                     &NotifEntry->Notif.ActiveScanPayload.Results.mLqi,
                     NULL, // proto (don't care)
                     NULL, // flags (don't care)
-                    &NotifEntry->Notif.ActiveScanPayload.Results.mNetworkName.m8,
-                    &NotifEntry->Notif.ActiveScanPayload.Results.mExtendedPanId.m8,
+                    &aNetworkName,
+                    &aExtPanId,
                     &xpanid_len
                 ) &&
+                aExtAddr != NULL && aExtPanId != NULL && aNetworkName != NULL && 
                 xpanid_len == OT_EXT_PAN_ID_SIZE)
             {
+                memcpy_s(NotifEntry->Notif.ActiveScanPayload.Results.mExtAddress.m8,
+                         sizeof(NotifEntry->Notif.ActiveScanPayload.Results.mExtAddress.m8),
+                         aExtAddr, sizeof(otExtAddress));
+                memcpy_s(NotifEntry->Notif.ActiveScanPayload.Results.mExtendedPanId.m8,
+                         sizeof(NotifEntry->Notif.ActiveScanPayload.Results.mExtendedPanId.m8),
+                         aExtPanId, sizeof(otExtendedPanId));
+                strcpy_s(NotifEntry->Notif.ActiveScanPayload.Results.mNetworkName.m8,
+                         sizeof(NotifEntry->Notif.ActiveScanPayload.Results.mNetworkName.m8),
+                         aNetworkName);
                 otLwfIndicateNotification(NotifEntry);
             }
             else
