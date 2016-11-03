@@ -220,6 +220,10 @@ typedef struct _MS_FILTER
         LIST_ENTRY                  tunCommandHandlers;
         USHORT                      tunTIDsInUse;
         spinel_tid_t                tunNextTID;
+        
+        PVOID                       TunWorkerThread;
+        KEVENT                      TunWorkerThreadStopEvent;
+        KEVENT                      TunWorkerThreadAddressChangedEvent;
     };
     };
 

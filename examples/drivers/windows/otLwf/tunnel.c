@@ -35,6 +35,8 @@
 #include "precomp.h"
 #include "tunnel.tmh"
 
+KSTART_ROUTINE otLwfTunWorkerThread;
+
 ThreadError
 SpinelStatusToThreadError(
     spinel_status_t error
@@ -119,6 +121,7 @@ otLwfInitializeTunnelMode(
 {
     NDIS_STATUS Status = NDIS_STATUS_SUCCESS;
     uint32_t InterfaceType = 0;
+    HANDLE threadHandle = NULL;
 
     LogFuncEntry(DRIVER_DEFAULT);
 
@@ -127,6 +130,48 @@ otLwfInitializeTunnelMode(
     
     NdisAllocateSpinLock(&pFilter->tunCommandLock);
     InitializeListHead(&pFilter->tunCommandHandlers);
+    
+    KeInitializeEvent(
+        &pFilter->TunWorkerThreadStopEvent,
+        SynchronizationEvent, // auto-clearing event
+        FALSE                 // event initially non-signalled
+        );
+    KeInitializeEvent(
+        &pFilter->TunWorkerThreadAddressChangedEvent,
+        SynchronizationEvent, // auto-clearing event
+        FALSE                 // event initially non-signalled
+        );
+
+    // Start the worker thread
+    Status = PsCreateSystemThread(
+                &threadHandle,                  // ThreadHandle
+                THREAD_ALL_ACCESS,              // DesiredAccess
+                NULL,                           // ObjectAttributes
+                NULL,                           // ProcessHandle
+                NULL,                           // ClientId
+                otLwfTunWorkerThread,           // StartRoutine
+                pFilter                         // StartContext
+                );
+    if (!NT_SUCCESS(Status))
+    {
+        LogError(DRIVER_DEFAULT, "PsCreateSystemThread failed, %!STATUS!", Status);
+        goto error;
+    }
+
+    // Grab the object reference to the worker thread
+    Status = ObReferenceObjectByHandle(
+                threadHandle,
+                THREAD_ALL_ACCESS,
+                *PsThreadType,
+                KernelMode,
+                &pFilter->TunWorkerThread,
+                NULL
+                );
+    if (!NT_VERIFYMSG("ObReferenceObjectByHandle can't fail with a valid kernel handle", NT_SUCCESS(Status)))
+    {
+        LogError(DRIVER_DEFAULT, "ObReferenceObjectByHandle failed, %!STATUS!", Status);
+        KeSetEvent(&pFilter->TunWorkerThreadStopEvent, IO_NO_INCREMENT, FALSE);
+    }
 
     // Query the interface type to make sure it is a Thread device
     Status = otLwfGetTunProp(pFilter, SPINEL_PROP_INTERFACE_TYPE, SPINEL_DATATYPE_UINT_PACKED_S, &InterfaceType);
@@ -163,9 +208,121 @@ otLwfUninitializeTunnelMode(
     )
 {
     LogFuncEntry(DRIVER_DEFAULT);
-    UNREFERENCED_PARAMETER(pFilter);
+
+    // Clean up worker thread
+    if (pFilter->TunWorkerThread)
+    {
+        LogInfo(DRIVER_DEFAULT, "Stopping tunnel worker thread and waiting for it to complete.");
+
+        // Send event to shutdown worker thread
+        KeSetEvent(&pFilter->TunWorkerThreadStopEvent, 0, FALSE);
+
+        // Wait for worker thread to finish
+        KeWaitForSingleObject(
+            pFilter->TunWorkerThread,
+            Executive,
+            KernelMode,
+            FALSE,
+            NULL
+            );
+
+        // Free worker thread
+        ObDereferenceObject(pFilter->TunWorkerThread);
+        pFilter->TunWorkerThread = NULL;
+
+        LogInfo(DRIVER_DEFAULT, "Tunnel worker thread cleaned up.");
+    }
+
     // TODO - Clean up command handlers
+
     LogFuncExit(DRIVER_DEFAULT);
+}
+
+// Worker thread for processing all tunnel events
+_Use_decl_annotations_
+VOID
+otLwfTunWorkerThread(
+    PVOID   Context
+    )
+{
+    PMS_FILTER pFilter = (PMS_FILTER)Context;
+    NT_ASSERT(pFilter);
+
+    LogFuncEntry(DRIVER_DEFAULT);
+
+    PKEVENT WaitEvents[] = 
+    { 
+        &pFilter->TunWorkerThreadStopEvent,
+        &pFilter->TunWorkerThreadAddressChangedEvent
+    };
+
+    LogFuncExit(DRIVER_DEFAULT);
+    
+    while (true)
+    {
+        // Wait for event to stop or process event to fire
+        NTSTATUS status = 
+            KeWaitForMultipleObjects(
+                ARRAYSIZE(WaitEvents), 
+                (PVOID*)WaitEvents, 
+                WaitAny, 
+                Executive, 
+                KernelMode, 
+                FALSE, 
+                NULL, 
+                NULL);
+
+        // If it is the first event, then we are shutting down. Exit loop and terminate thread
+        if (status == STATUS_WAIT_0)
+        {
+            LogInfo(DRIVER_DEFAULT, "Received tunnel worker thread shutdown event.");
+            break;
+        }
+        else if (status == STATUS_WAIT_0 + 1) // TunWorkerThreadAddressChangedEvent fired
+        {
+            const uint8_t* value_data_ptr = NULL;
+            spinel_size_t value_data_len = 0;
+            
+            // Query the current addresses
+            status = 
+                otLwfGetTunProp(
+                    pFilter, 
+                    SPINEL_PROP_IPV6_ADDRESS_TABLE, 
+                    SPINEL_DATATYPE_DATA_S, 
+                    &value_data_ptr, 
+                    &value_data_len);
+            if (NT_SUCCESS(status))
+            {
+                uint32_t aNotifFlags = 0;
+                otLwfTunAddressesUpdated(pFilter, value_data_ptr, value_data_len, &aNotifFlags);
+
+                // Send notification
+                if (aNotifFlags != 0)
+                {
+                    PFILTER_NOTIFICATION_ENTRY NotifEntry = FILTER_ALLOC_NOTIF(pFilter);
+                    if (NotifEntry)
+                    {
+                        RtlZeroMemory(NotifEntry, sizeof(FILTER_NOTIFICATION_ENTRY));
+                        NotifEntry->Notif.InterfaceGuid = pFilter->InterfaceGuid;
+                        NotifEntry->Notif.NotifType = OTLWF_NOTIF_STATE_CHANGE;
+                        NotifEntry->Notif.StateChangePayload.Flags = aNotifFlags;
+
+                        otLwfIndicateNotification(NotifEntry);
+                    }
+                }
+            }
+            else
+            {
+                LogWarning(DRIVER_DEFAULT, "Failed to query addresses, %!STATUS!", status);
+            }
+        }
+        else
+        {
+            LogWarning(DRIVER_DEFAULT, "Unexpected wait result, %!STATUS!", status);
+        }
+    }
+
+    PsTerminateSystemThread(STATUS_SUCCESS);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -232,7 +389,7 @@ otLwfProcessSpinelValueIs(
     }
     else if (key == SPINEL_PROP_IPV6_ADDRESS_TABLE) 
     {
-        otLwfTunAddressesUpdated(pFilter, value_data_ptr, value_data_len, &aNotifFlags);
+        KeSetEvent(&pFilter->TunWorkerThreadAddressChangedEvent, IO_NO_INCREMENT, FALSE);
     } 
     else if (key == SPINEL_PROP_THREAD_CHILD_TABLE) 
     {
@@ -596,7 +753,7 @@ otLwfSendTunnelPacket(
     IpDataBuffer = (PUCHAR)NdisGetDataBuffer(IpNetBuffer, IpNetBuffer->DataLength, DataBuffer + NetBuffer->DataLength, 1, 0);
     if (IpDataBuffer != DataBuffer + NetBuffer->DataLength)
     {
-        RtlCopyMemory(IpDataBuffer, DataBuffer + NetBuffer->DataLength, NetBufferLength - NetBuffer->DataLength);
+        RtlCopyMemory(DataBuffer + NetBuffer->DataLength, IpDataBuffer, NetBufferLength - NetBuffer->DataLength);
     }
     
     v6Header = (IPV6_HEADER*)(DataBuffer + NetBuffer->DataLength);
@@ -608,7 +765,7 @@ otLwfSendTunnelPacket(
     DataBuffer[NetBuffer->DataLength]   = (((USHORT)IpNetBuffer->DataLength) >> 0) & 0xff;
                                             
     LogVerbose(DRIVER_DATA_PATH, "Filter: %p, IP6_SEND: %p : %!IPV6ADDR! => %!IPV6ADDR! (%u bytes)", 
-                pFilter, NULL, &v6Header->SourceAddress, &v6Header->DestinationAddress, 
+                pFilter, NetBufferList, &v6Header->SourceAddress, &v6Header->DestinationAddress, 
                 NET_BUFFER_DATA_LENGTH(IpNetBuffer));
 
     // Send the NBL down

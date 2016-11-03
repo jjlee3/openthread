@@ -512,29 +512,11 @@ otLwfTunIoCtl_otInterface(
         BOOLEAN IsEnabled = *(BOOLEAN*)InBuffer;
         if (IsEnabled)
         {
-            const uint8_t* value_data_ptr = NULL;
-            spinel_size_t value_data_len = 0;
-
             // Make sure our addresses are in sync
             (void)otLwfInitializeAddresses(pFilter);
             
-            // Query the current addresses (TODO - Make async?)
-            status = 
-                otLwfGetTunProp(
-                    pFilter, 
-                    SPINEL_PROP_IPV6_ADDRESS_TABLE, 
-                    SPINEL_DATATYPE_DATA_S, 
-                    &value_data_ptr, 
-                    &value_data_len);
-            if (NT_SUCCESS(status))
-            {
-                uint32_t aNotifFlags = 0;
-                otLwfTunAddressesUpdated(pFilter, value_data_ptr, value_data_len, &aNotifFlags);
-            }
-            else
-            {
-                LogWarning(DRIVER_IOCTL, "Failed to cache initial addresses, %!STATUS!", status);
-            }
+            // Sync the current addresses
+            KeSetEvent(&pFilter->TunWorkerThreadAddressChangedEvent, IO_NO_INCREMENT, FALSE);
         }
 
         status = 
