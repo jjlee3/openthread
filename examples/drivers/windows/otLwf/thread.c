@@ -339,13 +339,13 @@ void otLwfStateChangedCallback(uint32_t aFlags, _In_ void *aContext)
     if ((aFlags & OT_IP6_ADDRESS_ADDED) != 0)
     {
         LogVerbose(DRIVER_DEFAULT, "Filter %p received OT_IP6_ADDRESS_ADDED", pFilter);
-        otLwfAddressesUpdated(pFilter);
+        otLwfRadioAddressesUpdated(pFilter);
     }
 
     if ((aFlags & OT_IP6_ADDRESS_REMOVED) != 0)
     {
         LogVerbose(DRIVER_DEFAULT, "Filter %p received OT_IP6_ADDRESS_REMOVED", pFilter);
-        otLwfAddressesUpdated(pFilter);
+        otLwfRadioAddressesUpdated(pFilter);
     }
 
     if ((aFlags & OT_NET_ROLE) != 0)

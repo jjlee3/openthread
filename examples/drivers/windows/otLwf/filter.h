@@ -131,6 +131,14 @@ typedef struct _MS_FILTER
 
     BOOLEAN                         InternalStateInitialized;
 
+    //
+    // OpenThread addresses
+    //
+    IN6_ADDR                    otCachedAddr[OT_MAX_ADDRESSES];
+    ULONG                       otCachedAddrCount;
+    IN6_ADDR                    otLinkLocalAddr;
+    otNetifAddress              otAutoAddresses[OT_MAX_AUTO_ADDRESSES];
+
     union
     {
     struct // Thread Mode Variables
@@ -159,14 +167,6 @@ typedef struct _MS_FILTER
         // OpenThread state management
         //
         otDeviceRole                otCachedRole;
-
-        //
-        // OpenThread addresses
-        //
-        IN6_ADDR                    otCachedAddr[OT_MAX_ADDRESSES];
-        ULONG                       otCachedAddrCount;
-        IN6_ADDR                    otLinkLocalAddr;
-        otNetifAddress              otAutoAddresses[OT_MAX_AUTO_ADDRESSES];
 
         //
         // OpenThread data path state
@@ -315,8 +315,17 @@ otLwfInitializeAddresses(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID 
-otLwfAddressesUpdated(
+otLwfRadioAddressesUpdated(
     _In_ PMS_FILTER pFilter
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID 
+otLwfTunAddressesUpdated(
+    _In_ PMS_FILTER pFilter,
+    _In_reads_bytes_(value_data_len) const uint8_t* value_data_ptr,
+    _In_ spinel_size_t value_data_len,
+    _Out_ uint32_t *aNotifFlags
     );
 
 int 

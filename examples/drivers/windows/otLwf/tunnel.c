@@ -232,8 +232,7 @@ otLwfProcessSpinelValueIs(
     }
     else if (key == SPINEL_PROP_IPV6_ADDRESS_TABLE) 
     {
-        // TODO - Update cached addresses
-        // TODO - Send notification
+        otLwfTunAddressesUpdated(pFilter, value_data_ptr, value_data_len, &aNotifFlags);
     } 
     else if (key == SPINEL_PROP_THREAD_CHILD_TABLE) 
     {
