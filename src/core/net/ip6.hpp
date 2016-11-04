@@ -36,7 +36,8 @@
 
 #include <stddef.h>
 
-#include <openthread-types.h>
+#include <openthread-ip6.h>
+#include <openthread-udp.h>
 #include <common/encoding.hpp>
 #include <common/message.hpp>
 #include <net/icmp6.hpp>
@@ -346,8 +347,9 @@ private:
     ThreadError HandleExtensionHeaders(Message &message, Header &header, uint8_t &nextHeader, bool forward,
                                        bool receive);
     ThreadError HandleFragment(Message &message);
-    ThreadError AddMplOption(Message &message, Header &header, IpProto nextHeader, uint16_t payloadLength);
-    ThreadError InsertMplOption(Message &message, Header &header);
+    ThreadError AddMplOption(Message &message, Header &header);
+    ThreadError AddTunneledMplOption(Message &message, Header &header, MessageInfo &messageInfo);
+    ThreadError InsertMplOption(Message &message, Header &header, MessageInfo &messageInfo);
     ThreadError RemoveMplOption(Message &aMessage);
     ThreadError HandleOptions(Message &message, Header &header, bool &forward);
     ThreadError HandlePayload(Message &message, MessageInfo &messageInfo, uint8_t ipproto);
