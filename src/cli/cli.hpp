@@ -42,11 +42,14 @@
 #include <openthread.h>
 
 #include <stdarg.h>
-
+#include <openthread-ip6.h>
+#include <openthread-udp.h>
 #include <cli/cli_server.hpp>
+
 #ifndef OTDLL
 #include <net/icmp6.hpp>
 #include <common/timer.hpp>
+#include <dhcp6/dhcp6_client.h>
 #endif
 
 #ifdef OTDLL
@@ -176,11 +179,18 @@ private:
 #endif
     void ProcessExtAddress(int argc, char *argv[]);
     void ProcessExtPanId(int argc, char *argv[]);
+    void ProcessFactoryReset(int argc, char *argv[]);
     void ProcessHashMacAddress(int argc, char *argv[]);
     void ProcessIfconfig(int argc, char *argv[]);
     void ProcessIpAddr(int argc, char *argv[]);
     ThreadError ProcessIpAddrAdd(int argc, char *argv[]);
     ThreadError ProcessIpAddrDel(int argc, char *argv[]);
+    void ProcessIpMulticastAddr(int argc, char *argv[]);
+#ifndef OTDLL
+    ThreadError ProcessIpMulticastAddrAdd(int argc, char *argv[]);
+    ThreadError ProcessIpMulticastAddrDel(int argc, char *argv[]);
+    ThreadError ProcessMulticastPromiscuous(int argc, char *argv[]);
+#endif
 #if OPENTHREAD_ENABLE_JOINER
     void ProcessJoiner(int argc, char *argv[]);
 #endif  // OPENTHREAD_ENABLE_JOINER
@@ -267,9 +277,12 @@ private:
     uint16_t sCount;
     uint32_t sInterval;
     Timer sPingTimer;
-#endif
 
-    otNetifAddress mAutoAddresses[kMaxAutoAddresses];
+    otNetifAddress  mSlaacAddresses[OPENTHREAD_CONFIG_NUM_SLAAC_ADDRESSES];
+#if OPENTHREAD_ENABLE_DHCP6_CLIENT
+    otNetifAddress  mDhcpAddresses[OPENTHREAD_CONFIG_NUM_DHCP_PREFIXES];
+#endif // OPENTHREAD_ENABLE_DHCP6_CLIENT
+#endif
 
     otInstance *mInstance;
 

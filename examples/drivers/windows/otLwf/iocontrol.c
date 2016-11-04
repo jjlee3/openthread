@@ -5731,7 +5731,8 @@ otLwfIoCtl_otSendActiveGet(
                 otSendActiveGet(
                     pFilter->otCtx,
                     aTlvTypes,
-                    aLength)
+                    aLength,
+                    NULL)
                 );
         }
     }
@@ -5805,7 +5806,8 @@ otLwfIoCtl_otSendPendingGet(
                 otSendPendingGet(
                     pFilter->otCtx,
                     aTlvTypes,
-                    aLength)
+                    aLength,
+                    NULL)
                 );
         }
     }
