@@ -77,9 +77,6 @@
         netio.lib;
         uuid.lib;
         cng.lib;
-        ..\..\build\bin\$(Platform)\$(Configuration)\lib\libopenthread_k.lib;
-        ..\..\build\bin\$(Platform)\$(Configuration)\lib\mbedtls_k.lib;
-        ..\..\build\bin\$(Platform)\$(Configuration)\lib\spinel_k.lib;
       </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
