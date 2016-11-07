@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="openthread.configuration.props" /> 
+  <Import Project="openthread.configuration.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3F1F7F6C-2A33-4635-9880-08FC5BC4E435}</ProjectGuid>
     <TemplateGuid>{8b1800b9-d017-4029-9785-13ef5e5b328e}</TemplateGuid>
@@ -90,6 +90,7 @@
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\driver.c" />
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\eventprocessing.c" />
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\iocontrol.c" />
+    <ClCompile Include="..\..\examples\drivers\windows\otLwf\settings.c" />
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\thread.c" />
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\tunnel.c" />
     <ClCompile Include="..\..\examples\drivers\windows\otLwf\oid.c" />
@@ -112,6 +113,8 @@
     <ClInclude Include="..\..\examples\drivers\windows\otLwf\tunnel.h" />
     <ClInclude Include="..\..\examples\drivers\windows\otLwf\precomp.h" />
     <ClInclude Include="..\..\examples\drivers\windows\otLwf\filter.h" />
+    <ResourceCompile Include="..\..\examples\drivers\windows\otLwf\filter.rc" />
+    <Inf Include="..\..\examples\drivers\windows\otLwf\otLwf.inf" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
