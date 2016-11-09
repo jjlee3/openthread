@@ -295,6 +295,7 @@ const char* IoCtlStrings[] =
     "IOCTL_OTLWF_OT_SEND_MGMT_COMMISSIONER_GET",
     "IOCTL_OTLWF_OT_SEND_MGMT_COMMISSIONER_SET",
     "IOCTL_OTLWF_OT_KEY_SWITCH_GUARDTIME",
+    "IOCTL_OTLWF_OT_FACTORY_RESET",
 };
 
 static_assert(ARRAYSIZE(IoCtlStrings) == (MAX_OTLWF_IOCTL_FUNC_CODE - MIN_OTLWF_IOCTL_FUNC_CODE),
@@ -607,6 +608,9 @@ otLwfCompleteOpenThreadIrp(
         break;
     case IOCTL_OTLWF_OT_KEY_SWITCH_GUARDTIME:
         status = otLwfIoCtl_otKeySwitchGuardtime(pFilter, InBuffer, InBufferLength, OutBuffer, &OutBufferLength);
+        break;
+    case IOCTL_OTLWF_OT_FACTORY_RESET:
+        status = otLwfIoCtl_otFactoryReset(pFilter, InBuffer, InBufferLength, OutBuffer, &OutBufferLength);
         break;
     default:
         status = STATUS_NOT_IMPLEMENTED;
@@ -2709,6 +2713,30 @@ otLwfIoCtl_otPlatformReset(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
+otLwfIoCtl_otFactoryReset(
+    _In_ PMS_FILTER         pFilter,
+    _In_reads_bytes_(InBufferLength)
+            PUCHAR          InBuffer,
+    _In_    ULONG           InBufferLength,
+    _Out_writes_bytes_(*OutBufferLength)
+            PVOID           OutBuffer,
+    _Inout_ PULONG          OutBufferLength
+    )
+{
+    NTSTATUS status = STATUS_SUCCESS;
+
+    UNREFERENCED_PARAMETER(InBuffer);
+    UNREFERENCED_PARAMETER(InBufferLength);
+    UNREFERENCED_PARAMETER(OutBuffer);
+    *OutBufferLength = 0;
+    
+    otFactoryReset(pFilter->otCtx);
+
+    return status;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
 otLwfIoCtl_otParentInfo(
     _In_ PMS_FILTER         pFilter,
     _In_reads_bytes_(InBufferLength)
@@ -3315,12 +3343,16 @@ otLwfIoCtl_otSendActiveGet(
 
         if (InBufferLength >= sizeof(uint8_t) + aLength)
         {
+            otIp6Address *aAddress = NULL;
+            if (InBufferLength >= sizeof(uint8_t) + aLength + sizeof(otIp6Address))
+                aAddress = (otIp6Address*)(InBuffer + sizeof(uint8_t) + aLength);
+
             status = ThreadErrorToNtstatus(
                 otSendActiveGet(
                     pFilter->otCtx,
                     aTlvTypes,
                     aLength,
-                    NULL)
+                    aAddress)
                 );
         }
     }
@@ -3390,12 +3422,16 @@ otLwfIoCtl_otSendPendingGet(
 
         if (InBufferLength >= sizeof(uint8_t) + aLength)
         {
+            otIp6Address *aAddress = NULL;
+            if (InBufferLength >= sizeof(uint8_t) + aLength + sizeof(otIp6Address))
+                aAddress = (otIp6Address*)(InBuffer + sizeof(uint8_t) + aLength);
+
             status = ThreadErrorToNtstatus(
                 otSendPendingGet(
                     pFilter->otCtx,
                     aTlvTypes,
                     aLength,
-                    NULL)
+                    aAddress)
                 );
         }
     }

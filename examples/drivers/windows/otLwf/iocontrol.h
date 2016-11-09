@@ -176,5 +176,6 @@ OTLWF_OT_IOCTL_FUNC otLwfIoCtl_otSendPendingSet;
 OTLWF_OT_IOCTL_FUNC otLwfIoCtl_otSendMgmtCommissionerGet;
 OTLWF_OT_IOCTL_FUNC otLwfIoCtl_otSendMgmtCommissionerSet;
 OTLWF_OT_IOCTL_FUNC otLwfIoCtl_otKeySwitchGuardtime;
+OTLWF_OT_IOCTL_FUNC otLwfIoCtl_otFactoryReset;
 
 #endif // _IOCONTROL_H
