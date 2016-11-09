@@ -560,14 +560,6 @@ public:
     ThreadError GetRouterInfo(uint16_t aRouterId, otRouterInfo &aRouterInfo);
 
     /**
-     * This method handles MAC Data Poll messages.
-     *
-     * @param[in]  aChild  The Child that sent the MAC Data Poll message.
-     *
-     */
-    void HandleMacDataRequest(const Child &aChild);
-
-    /**
      * This method indicates whether or not the given Thread partition attributes are preferred.
      *
      * @param[in]  aSingletonA   Whether or not the Thread Partition A has a single router.
@@ -622,6 +614,14 @@ public:
      *
      */
     void FillRouteTlv(RouteTlv &aTlv);
+
+    /**
+     * This method returns a reference to the send queue.
+     *
+     * @returns A reference to the send queue.
+     *
+     */
+    const MessageQueue &GetMessageQueue(void) const { return mDelayedResponses; }
 
 private:
     enum
