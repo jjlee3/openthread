@@ -1701,12 +1701,28 @@ void MleRouter::HandleStateUpdateTimer(void)
     // update children state
     for (int i = 0; i < mMaxChildrenAllowed; i++)
     {
-        if (mChildren[i].mState == Neighbor::kStateInvalid)
+        uint32_t timeout = 0;
+
+        switch (mChildren[i].mState)
         {
+        case Neighbor::kStateInvalid:
+        case Neighbor::kStateChildIdRequest:
             continue;
+
+        case Neighbor::kStateParentRequest:
+            timeout = kMaxChildIdRequestTimeout;
+            break;
+
+        case Neighbor::kStateValid:
+            timeout = Timer::SecToMsec(mChildren[i].mTimeout);
+            break;
+
+        case Neighbor::kStateLinkRequest:
+            assert(false);
+            break;
         }
 
-        if ((Timer::GetNow() - mChildren[i].mLastHeard) >= Timer::SecToMsec(mChildren[i].mTimeout))
+        if ((Timer::GetNow() - mChildren[i].mLastHeard) >= timeout)
         {
             RemoveNeighbor(mChildren[i]);
         }
@@ -2260,6 +2276,35 @@ ThreadError MleRouter::HandleNetworkDataUpdateRouter(void)
 
     SendDataResponse(destination, tlvs, sizeof(tlvs));
 
+    for (uint8_t i = 0; i < mMaxChildrenAllowed; i++)
+    {
+        Child *child = &mChildren[i];
+
+        if (child->mState != Neighbor::kStateValid || (child->mMode & ModeTlv::kModeRxOnWhenIdle) != 0)
+        {
+            continue;
+        }
+
+        memset(&destination, 0, sizeof(destination));
+        destination.mFields.m16[0] = HostSwap16(0xfe80);
+        destination.SetIid(child->mMacAddr);
+
+        if (child->mMode & ModeTlv::kModeFullNetworkData)
+        {
+            if (child->mNetworkDataVersion != mNetworkData.GetVersion())
+            {
+                SendDataResponse(destination, tlvs, sizeof(tlvs));
+            }
+        }
+        else
+        {
+            if (child->mNetworkDataVersion != mNetworkData.GetStableVersion())
+            {
+                SendDataResponse(destination, tlvs, sizeof(tlvs));
+            }
+        }
+    }
+
 exit:
     return kThreadError_None;
 }
@@ -2565,6 +2610,7 @@ ThreadError MleRouter::RemoveNeighbor(Neighbor &aNeighbor)
     case kDeviceStateLeader:
         if (aNeighbor.mState == Neighbor::kStateValid && !IsActiveRouter(aNeighbor.mValid.mRloc16))
         {
+            mMesh.UpdateIndirectMessages();
             mNetif.SetStateChangedFlags(OT_THREAD_CHILD_REMOVED);
             mNetworkData.SendServerDataNotification(aNeighbor.mValid.mRloc16);
         }
@@ -2840,36 +2886,6 @@ ThreadError MleRouter::SetPreferredRouterId(uint8_t aRouterId)
 
 exit:
     return error;
-}
-
-void MleRouter::HandleMacDataRequest(const Child &aChild)
-{
-    static const uint8_t tlvs[] = {Tlv::kLeaderData, Tlv::kNetworkData};
-    Ip6::Address destination;
-
-    VerifyOrExit(aChild.mState == Neighbor::kStateValid && (aChild.mMode & ModeTlv::kModeRxOnWhenIdle) == 0, ;);
-
-    memset(&destination, 0, sizeof(destination));
-    destination.mFields.m16[0] = HostSwap16(0xfe80);
-    destination.SetIid(aChild.mMacAddr);
-
-    if (aChild.mMode & ModeTlv::kModeFullNetworkData)
-    {
-        if (aChild.mNetworkDataVersion != mNetworkData.GetVersion())
-        {
-            SendDataResponse(destination, tlvs, sizeof(tlvs));
-        }
-    }
-    else
-    {
-        if (aChild.mNetworkDataVersion != mNetworkData.GetStableVersion())
-        {
-            SendDataResponse(destination, tlvs, sizeof(tlvs));
-        }
-    }
-
-exit:
-    {}
 }
 
 Router *MleRouter::GetRouters(uint8_t *aNumRouters)
@@ -3713,12 +3729,10 @@ exit:
 ThreadError MleRouter::AppendActiveDataset(Message &aMessage)
 {
     ThreadError error = kThreadError_None;
-    Tlv tlv;
 
-    tlv.SetType(Tlv::kActiveDataset);
-    tlv.SetLength(static_cast<uint8_t>(mNetif.GetActiveDataset().GetNetwork().GetSize()));
-    SuccessOrExit(error = aMessage.Append(&tlv, sizeof(tlv)));
-    SuccessOrExit(error = aMessage.Append(mNetif.GetActiveDataset().GetNetwork().GetBytes(), tlv.GetLength()));
+    VerifyOrExit(mNetif.GetActiveDataset().GetNetwork().GetSize() > 0,);
+
+    SuccessOrExit(error = mNetif.GetActiveDataset().GetNetwork().AppendMleDatasetTlv(aMessage));
 
 exit:
     return error;
@@ -3727,13 +3741,11 @@ exit:
 ThreadError MleRouter::AppendPendingDataset(Message &aMessage)
 {
     ThreadError error = kThreadError_None;
-    Tlv tlv;
 
-    tlv.SetType(Tlv::kPendingDataset);
-    tlv.SetLength(static_cast<uint8_t>(mNetif.GetPendingDataset().GetNetwork().GetSize()));
-    SuccessOrExit(error = aMessage.Append(&tlv, sizeof(tlv)));
+    VerifyOrExit(mNetif.GetPendingDataset().GetNetwork().GetSize() > 0,);
+
     mNetif.GetPendingDataset().UpdateDelayTimer();
-    SuccessOrExit(error = aMessage.Append(mNetif.GetPendingDataset().GetNetwork().GetBytes(), tlv.GetLength()));
+    SuccessOrExit(error = mNetif.GetPendingDataset().GetNetwork().AppendMleDatasetTlv(aMessage));
 
 exit:
     return error;
