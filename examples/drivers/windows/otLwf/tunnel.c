@@ -344,6 +344,8 @@ otLwfProcessSpinelValueIs(
         spinel_status_t status = SPINEL_STATUS_OK;
         spinel_datatype_unpack(value_data_ptr, value_data_len, "i", &status);
 
+        LogWarning(DRIVER_DEFAULT, "[%p] received %d for SPINEL_PROP_LAST_STATUS", pFilter, status);
+
         if ((status >= SPINEL_STATUS_RESET__BEGIN) && (status <= SPINEL_STATUS_RESET__END)) 
         {
             LogInfo(DRIVER_DEFAULT, "Interface %!GUID! was reset.", &pFilter->InterfaceGuid);
@@ -439,7 +441,31 @@ otLwfProcessSpinelValueIs(
     } 
     else if (key == SPINEL_PROP_STREAM_DEBUG) 
     {
-        // TODO - Log
+        const uint8_t* output = NULL;
+        UINT output_len = 0;
+        spinel_ssize_t ret;
+
+        ret = spinel_datatype_unpack(
+            value_data_ptr,
+            value_data_len,
+            SPINEL_DATATYPE_DATA_S,
+            &output,
+            &output_len);
+
+        NT_ASSERT(ret > 0);
+        if (ret > 0 && output && output_len <= (UINT)ret)
+        {
+            if (strnlen((char*)output, output_len) != output_len)
+            {
+                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", (char*)output);
+            }
+            else if (output_len < 128)
+            {
+                char strOutput[128] = {0};
+                memcpy(strOutput, output, output_len);
+                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", strOutput);
+            }
+        }
     } 
 
     // Send notification
@@ -751,8 +777,8 @@ otLwfSendTunnelPacket(
             DataBuffer, 
             NetBufferLength, 
             "Cii", 
-            SPINEL_HEADER_FLAG | SPINEL_HEADER_IID_0, 
-            SPINEL_CMD_PROP_VALUE_IS, 
+            (spinel_tid_t)(SPINEL_HEADER_FLAG | SPINEL_HEADER_IID_0), 
+            (UINT)SPINEL_CMD_PROP_VALUE_SET, 
             (Secured ? SPINEL_PROP_STREAM_NET : SPINEL_PROP_STREAM_NET_INSECURE));
     if (PackedLength < 0 || PackedLength + NetBuffer->DataLength > NetBufferLength)
     {
@@ -760,22 +786,24 @@ otLwfSendTunnelPacket(
         goto exit;
     }
 
+    NT_ASSERT(PackedLength >= 3);
     NetBuffer->DataLength += (ULONG)PackedLength;
-
-    // Copy the IP packet data
-    IpDataBuffer = (PUCHAR)NdisGetDataBuffer(IpNetBuffer, IpNetBuffer->DataLength, DataBuffer + NetBuffer->DataLength, 1, 0);
-    if (IpDataBuffer != DataBuffer + NetBuffer->DataLength)
-    {
-        RtlCopyMemory(DataBuffer + NetBuffer->DataLength, IpDataBuffer, NetBufferLength - NetBuffer->DataLength);
-    }
-    
-    v6Header = (IPV6_HEADER*)(DataBuffer + NetBuffer->DataLength);
-
-    NetBuffer->DataLength += IpNetBuffer->DataLength;
     
     // Copy over the data length
     DataBuffer[NetBuffer->DataLength+1] = (((USHORT)IpNetBuffer->DataLength) >> 8) & 0xff;
     DataBuffer[NetBuffer->DataLength]   = (((USHORT)IpNetBuffer->DataLength) >> 0) & 0xff;
+    NetBuffer->DataLength += 2;
+    
+    v6Header = (IPV6_HEADER*)(DataBuffer + NetBuffer->DataLength);
+
+    // Copy the IP packet data
+    IpDataBuffer = (PUCHAR)NdisGetDataBuffer(IpNetBuffer, IpNetBuffer->DataLength, v6Header, 1, 0);
+    if (IpDataBuffer != (PUCHAR)v6Header)
+    {
+        RtlCopyMemory(v6Header, IpDataBuffer, IpNetBuffer->DataLength);
+    }
+
+    NetBuffer->DataLength += IpNetBuffer->DataLength;
                                             
     LogVerbose(DRIVER_DATA_PATH, "Filter: %p, IP6_SEND: %p : %!IPV6ADDR! => %!IPV6ADDR! (%u bytes)", 
                 pFilter, NetBufferList, &v6Header->SourceAddress, &v6Header->DestinationAddress, 
