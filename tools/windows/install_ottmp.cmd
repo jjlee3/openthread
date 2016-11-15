@@ -1,0 +1,1 @@
+devcon install ottmp.inf root\ottmp
