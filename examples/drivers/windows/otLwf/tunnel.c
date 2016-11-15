@@ -174,7 +174,7 @@ otLwfInitializeTunnelMode(
     }
 
     // Query the interface type to make sure it is a Thread device
-    Status = otLwfGetTunProp(pFilter, SPINEL_PROP_INTERFACE_TYPE, SPINEL_DATATYPE_UINT_PACKED_S, &InterfaceType);
+    Status = otLwfGetTunProp(pFilter, NULL, SPINEL_PROP_INTERFACE_TYPE, SPINEL_DATATYPE_UINT_PACKED_S, &InterfaceType);
     if (!NT_SUCCESS(Status))
     {
         LogError(DRIVER_DEFAULT, "Failed to query SPINEL_PROP_INTERFACE_TYPE, %!STATUS!", Status);
@@ -280,16 +280,18 @@ otLwfTunWorkerThread(
         }
         else if (status == STATUS_WAIT_0 + 1) // TunWorkerThreadAddressChangedEvent fired
         {
+            PVOID DataBuffer = NULL;
             const uint8_t* value_data_ptr = NULL;
             spinel_size_t value_data_len = 0;
             
             // Query the current addresses
             status = 
                 otLwfGetTunProp(
-                    pFilter, 
-                    SPINEL_PROP_IPV6_ADDRESS_TABLE, 
-                    SPINEL_DATATYPE_DATA_S, 
-                    &value_data_ptr, 
+                    pFilter,
+                    &DataBuffer,
+                    SPINEL_PROP_IPV6_ADDRESS_TABLE,
+                    SPINEL_DATATYPE_DATA_S,
+                    &value_data_ptr,
                     &value_data_len);
             if (NT_SUCCESS(status))
             {
@@ -315,6 +317,8 @@ otLwfTunWorkerThread(
             {
                 LogWarning(DRIVER_DEFAULT, "Failed to query addresses, %!STATUS!", status);
             }
+
+            if (DataBuffer) FILTER_FREE_MEM(DataBuffer);
         }
         else
         {
@@ -1334,6 +1338,7 @@ typedef struct _SPINEL_GET_PROP_CONTEXT
 {
     KEVENT              CompletionEvent;
     spinel_prop_key_t   Key;
+    PVOID              *DataBuffer;
     const char*         Format;
     va_list             Args;
     NTSTATUS            Status;
@@ -1379,6 +1384,21 @@ otLwfGetPropHandler(
     }
     else if (Key == CmdContext->Key)
     {
+        if (CmdContext->DataBuffer)
+        {
+            CmdContext->DataBuffer = FILTER_ALLOC_MEM(pFilter->FilterHandle, DataLength);
+            if (CmdContext->DataBuffer == NULL)
+            {
+                CmdContext->Status = STATUS_INSUFFICIENT_RESOURCES;
+                DataLength = 0;
+            }
+            else
+            {
+                memcpy(CmdContext->DataBuffer, Data, DataLength);
+                Data = (uint8_t*)CmdContext->DataBuffer;
+            }
+        }
+
         spinel_ssize_t packed_len = spinel_datatype_vunpack(Data, DataLength, CmdContext->Format, CmdContext->Args);
         if (packed_len < 0 || (ULONG)packed_len > DataLength)
         {
@@ -1404,6 +1424,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS
 otLwfGetTunProp(
     _In_ PMS_FILTER pFilter,
+    _Out_opt_ PVOID *DataBuffer,
     _In_ spinel_prop_key_t Key,
     _In_ const char *pack_format, 
     ...
@@ -1417,6 +1438,7 @@ otLwfGetTunProp(
     SPINEL_GET_PROP_CONTEXT Context;
     KeInitializeEvent(&Context.CompletionEvent, SynchronizationEvent, FALSE);
     Context.Key = Key;
+    Context.DataBuffer = DataBuffer;
     Context.Format = pack_format;
     Context.Status = STATUS_SUCCESS;
     va_start(Context.Args, pack_format);
