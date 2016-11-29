@@ -3255,7 +3255,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerStart(
-     _In_ otInstance *aInstance
+    _In_ otInstance *aInstance
     )
 {
     if (aInstance == nullptr) return kThreadError_InvalidArgs;
@@ -3266,7 +3266,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerAddJoiner(
-     _In_ otInstance *aInstance, 
+    _In_ otInstance *aInstance, 
     const otExtAddress *aExtAddress, 
     const char *aPSKd
     )
@@ -3296,7 +3296,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerRemoveJoiner(
-     _In_ otInstance *aInstance, 
+    _In_ otInstance *aInstance, 
     const otExtAddress *aExtAddress
     )
 {
@@ -3317,7 +3317,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerSetProvisioningUrl(
-     _In_ otInstance *aInstance,
+    _In_ otInstance *aInstance,
     const char *aProvisioningUrl
     )
 {
@@ -3359,7 +3359,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerStop(
-     _In_ otInstance *aInstance
+    _In_ otInstance *aInstance
     )
 {
     if (aInstance == nullptr) return kThreadError_InvalidArgs;
@@ -3370,7 +3370,7 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerEnergyScan(
-     _In_ otInstance *aInstance, 
+    _In_ otInstance *aInstance, 
     uint32_t aChannelMask, 
     uint8_t aCount, 
     uint16_t aPeriod,
@@ -3395,12 +3395,12 @@ OTAPI
 ThreadError 
 OTCALL
 otCommissionerPanIdQuery(
-     _In_ otInstance *aInstance, 
+    _In_ otInstance *aInstance, 
     uint16_t aPanId, 
     uint32_t aChannelMask,
     const otIp6Address *aAddress,
-     _In_ otCommissionerPanIdConflictCallback aCallback, 
-     _In_ void *aContext
+    _In_ otCommissionerPanIdConflictCallback aCallback, 
+    _In_ void *aContext
     )
 {
     if (aInstance == nullptr) return kThreadError_InvalidArgs;
@@ -3418,7 +3418,7 @@ OTAPI
 ThreadError 
 OTCALL 
 otSendMgmtCommissionerGet(
-     _In_ otInstance *aInstance, 
+    _In_ otInstance *aInstance, 
     const uint8_t *aTlvs, 
     uint8_t aLength
 )
@@ -3446,7 +3446,7 @@ OTAPI
 ThreadError 
 OTCALL 
 otSendMgmtCommissionerSet(
-     _In_ otInstance *aInstance,
+    _In_ otInstance *aInstance,
     const otCommissioningDataset *aDataset,
     const uint8_t *aTlvs,
     uint8_t aLength
@@ -3472,11 +3472,23 @@ otSendMgmtCommissionerSet(
     return result;
 }
 
+OTAPI
+uint16_t
+OTCALL
+otCommissionerGetSessionId(
+    _In_ otInstance *aInstance
+    )
+{
+    if (aInstance == nullptr) return 0;
+    // TODO
+    return 0;
+}
+
 OTAPI 
 ThreadError 
 OTCALL
 otJoinerStart(
-     _In_ otInstance *aInstance,
+    _In_ otInstance *aInstance,
     const char *aPSKd, 
     const char *aProvisioningUrl
     )
@@ -3504,7 +3516,7 @@ OTAPI
 ThreadError 
 OTCALL
 otJoinerStop(
-     _In_ otInstance *aInstance
+    _In_ otInstance *aInstance
     )
 {
     if (aInstance == nullptr) return kThreadError_InvalidArgs;
