@@ -37,7 +37,6 @@
 #include <common/debug.hpp>
 #include <common/logging.hpp>
 #include <common/message.hpp>
-#include <common/logging.hpp>
 #include <net/ip6.hpp>
 
 namespace Thread {
@@ -225,7 +224,7 @@ uint8_t Message::GetBufferCount(void) const
 {
     uint8_t rval = 1;
 
-    for (const Buffer *curBuffer = GetNextBuffer(); curBuffer; curBuffer->GetNextBuffer())
+    for (const Buffer *curBuffer = GetNextBuffer(); curBuffer; curBuffer = curBuffer->GetNextBuffer())
     {
         rval++;
     }

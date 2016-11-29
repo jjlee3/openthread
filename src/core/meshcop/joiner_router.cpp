@@ -45,8 +45,8 @@
 #include <common/encoding.hpp>
 #include <common/logging.hpp>
 #include <meshcop/joiner_router.hpp>
+#include <meshcop/tlvs.hpp>
 #include <thread/mle.hpp>
-#include <thread/meshcop_tlvs.hpp>
 #include <thread/thread_netif.hpp>
 #include <thread/thread_uris.hpp>
 
@@ -61,6 +61,7 @@ JoinerRouter::JoinerRouter(ThreadNetif &aNetif):
     mRelayTransmit(OPENTHREAD_URI_RELAY_TX, &JoinerRouter::HandleRelayTransmit, this),
     mCoapClient(aNetif.GetCoapClient()),
     mNetif(aNetif),
+    mJoinerUdpPort(0),
     mIsJoinerPortConfigured(false)
 {
     mSocket.GetSockName().mPort = OPENTHREAD_CONFIG_JOINER_UDP_PORT;
@@ -252,10 +253,12 @@ exit:
     otLogFuncExitErr(error);
 }
 
-void JoinerRouter::HandleRelayTransmit(void *aContext, Coap::Header &aHeader,
-                                       Message &aMessage, const Ip6::MessageInfo &aMessageInfo)
+void JoinerRouter::HandleRelayTransmit(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
+                                       const otMessageInfo *aMessageInfo)
 {
-    static_cast<JoinerRouter *>(aContext)->HandleRelayTransmit(aHeader, aMessage, aMessageInfo);
+    static_cast<JoinerRouter *>(aContext)->HandleRelayTransmit(
+        *static_cast<Coap::Header *>(aHeader), *static_cast<Message *>(aMessage),
+        *static_cast<const Ip6::MessageInfo *>(aMessageInfo));
 }
 
 void JoinerRouter::HandleRelayTransmit(Coap::Header &aHeader, Message &aMessage, const Ip6::MessageInfo &aMessageInfo)
@@ -417,7 +420,7 @@ ThreadError JoinerRouter::SendJoinerEntrust(const Ip6::MessageInfo &aMessageInfo
     SuccessOrExit(error = mCoapClient.SendMessage(*message, messageInfo));
 
     otLogInfoMeshCoP("Sent joiner entrust length = %d", message->GetLength());
-    otLogCertMeshCoP("[THCI] direction=send | msg_type=JOIN_ENT.ntf");
+    otLogCertMeshCoP("[THCI] direction=send | type=JOIN_ENT.ntf");
 
 exit:
 

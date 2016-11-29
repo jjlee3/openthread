@@ -40,7 +40,7 @@
 #include <common/logging.hpp>
 #include <platform/random.h>
 #include <meshcop/energy_scan_client.hpp>
-#include <thread/meshcop_tlvs.hpp>
+#include <meshcop/tlvs.hpp>
 #include <thread/thread_netif.hpp>
 #include <thread/thread_uris.hpp>
 
@@ -122,10 +122,12 @@ exit:
     return error;
 }
 
-void EnergyScanClient::HandleReport(void *aContext, Coap::Header &aHeader, Message &aMessage,
-                                    const Ip6::MessageInfo &aMessageInfo)
+void EnergyScanClient::HandleReport(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
+                                    const otMessageInfo *aMessageInfo)
 {
-    static_cast<EnergyScanClient *>(aContext)->HandleReport(aHeader, aMessage, aMessageInfo);
+    static_cast<EnergyScanClient *>(aContext)->HandleReport(
+        *static_cast<Coap::Header *>(aHeader), *static_cast<Message *>(aMessage),
+        *static_cast<const Ip6::MessageInfo *>(aMessageInfo));
 }
 
 void EnergyScanClient::HandleReport(Coap::Header &aHeader, Message &aMessage, const Ip6::MessageInfo &aMessageInfo)

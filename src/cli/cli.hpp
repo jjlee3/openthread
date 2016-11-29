@@ -45,6 +45,7 @@
 #include <openthread-ip6.h>
 #include <openthread-udp.h>
 #include <cli/cli_server.hpp>
+#include <common/code_utils.hpp>
 
 #ifndef OTDLL
 #include <net/icmp6.hpp>

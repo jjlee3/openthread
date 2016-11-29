@@ -53,12 +53,13 @@
 #include <openthread-instance.h>
 #include <openthread-diag.h>
 
-#include <common/encoding.hpp>
 #include <common/new.hpp>
 #include <net/ip6.hpp>
 #include <dhcp6/dhcp6_client.h>
 #include <platform/uart.h>
 #endif
+
+#include <common/encoding.hpp>
 
 #include "cli.hpp"
 #include "cli_dataset.hpp"
@@ -580,6 +581,8 @@ void Interpreter::ProcessCounters(int argc, char *argv[])
         {
             const otMacCounters *counters = otGetMacCounters(mInstance);
             sServer->OutputFormat("TxTotal: %d\r\n", counters->mTxTotal);
+            sServer->OutputFormat("    TxUnicast: %d\r\n", counters->mTxUnicast);
+            sServer->OutputFormat("    TxBroadcast: %d\r\n", counters->mTxBroadcast);
             sServer->OutputFormat("    TxAckRequested: %d\r\n", counters->mTxAckRequested);
             sServer->OutputFormat("    TxAcked: %d\r\n", counters->mTxAcked);
             sServer->OutputFormat("    TxNoAckRequested: %d\r\n", counters->mTxNoAckRequested);
@@ -591,6 +594,8 @@ void Interpreter::ProcessCounters(int argc, char *argv[])
             sServer->OutputFormat("    TxRetry: %d\r\n", counters->mTxRetry);
             sServer->OutputFormat("    TxErrCca: %d\r\n", counters->mTxErrCca);
             sServer->OutputFormat("RxTotal: %d\r\n", counters->mRxTotal);
+            sServer->OutputFormat("    RxUnicast: %d\r\n", counters->mRxUnicast);
+            sServer->OutputFormat("    RxBroadcast: %d\r\n", counters->mRxBroadcast);
             sServer->OutputFormat("    RxData: %d\r\n", counters->mRxData);
             sServer->OutputFormat("    RxDataPoll: %d\r\n", counters->mRxDataPoll);
             sServer->OutputFormat("    RxBeacon: %d\r\n", counters->mRxBeacon);
@@ -2471,6 +2476,10 @@ void Interpreter::ProcessCommissioner(int argc, char *argv[])
         }
 
         SuccessOrExit(error = otSendMgmtCommissionerSet(mInstance, &dataset, tlvs, static_cast<uint8_t>(length)));
+    }
+    else if (strcmp(argv[0], "sessionid") == 0)
+    {
+        sServer->OutputFormat("%d\r\n", otCommissionerGetSessionId(mInstance));
     }
 
 exit:

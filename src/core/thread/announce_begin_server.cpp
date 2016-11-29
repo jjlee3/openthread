@@ -43,8 +43,8 @@
 #include <common/code_utils.hpp>
 #include <common/debug.hpp>
 #include <common/logging.hpp>
+#include <meshcop/tlvs.hpp>
 #include <platform/radio.h>
-#include <thread/meshcop_tlvs.hpp>
 #include <thread/announce_begin_server.hpp>
 #include <thread/thread_netif.hpp>
 #include <thread/thread_uris.hpp>
@@ -54,6 +54,10 @@ using Thread::Encoding::BigEndian::HostSwap32;
 namespace Thread {
 
 AnnounceBeginServer::AnnounceBeginServer(ThreadNetif &aThreadNetif) :
+    mChannelMask(0),
+    mPeriod(0),
+    mCount(0),
+    mChannel(0),
     mTimer(aThreadNetif.GetIp6().mTimerScheduler, &AnnounceBeginServer::HandleTimer, this),
     mAnnounceBegin(OPENTHREAD_URI_ANNOUNCE_BEGIN, &AnnounceBeginServer::HandleRequest, this),
     mCoapServer(aThreadNetif.GetCoapServer()),
@@ -88,12 +92,13 @@ exit:
     return error;
 }
 
-void AnnounceBeginServer::HandleRequest(void *aContext, Coap::Header &aHeader, Message &aMessage,
-                                        const Ip6::MessageInfo &aMessageInfo)
+void AnnounceBeginServer::HandleRequest(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
+                                        const otMessageInfo *aMessageInfo)
 {
-    static_cast<AnnounceBeginServer *>(aContext)->HandleRequest(aHeader, aMessage, aMessageInfo);
+    static_cast<AnnounceBeginServer *>(aContext)->HandleRequest(
+        *static_cast<Coap::Header *>(aHeader), *static_cast<Message *>(aMessage),
+        *static_cast<const Ip6::MessageInfo *>(aMessageInfo));
 }
-
 void AnnounceBeginServer::HandleRequest(Coap::Header &aHeader, Message &aMessage, const Ip6::MessageInfo &aMessageInfo)
 {
     MeshCoP::ChannelMask0Tlv channelMask;
