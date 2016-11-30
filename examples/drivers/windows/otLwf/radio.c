@@ -71,51 +71,33 @@ otPlatGetResetReason(
 }
 
 VOID 
-otLwfRadioSendPacket(
-    _In_ PMS_FILTER     pFilter,
-    _In_ RadioPacket*   Packet
-    );
-
-VOID 
 otLwfRadioGetFactoryAddress(
     _In_ PMS_FILTER pFilter
     )
 {
-    NDIS_STATUS status;
-    ULONG bytesProcessed;
-    OT_FACTORY_EXTENDED_ADDRESS OidBuffer = { {0} };
+    NTSTATUS status;
+    uint8_t *hwAddress = NULL;
 
     RtlZeroMemory(&pFilter->otFactoryAddress, sizeof(pFilter->otFactoryAddress));
 
     // Query the MP for the address
-    status = 
-        otLwfSendInternalRequest(
+    status =
+        otLwfCmdGetProp(
             pFilter,
-            NdisRequestQueryInformation,
-            OID_OT_FACTORY_EXTENDED_ADDRESS,
-            &OidBuffer,
-            sizeof(OT_FACTORY_EXTENDED_ADDRESS),
-            &bytesProcessed
-            );
-    if (status != NDIS_STATUS_SUCCESS)
+            NULL,
+            SPINEL_PROP_HWADDR, // TODO - Update NCP to return factory address for this
+            SPINEL_DATATYPE_EUI64_S,
+            &hwAddress
+        );
+    if (NT_SUCCESS(status) || hwAddress == NULL)
     {
-        LogError(DRIVER_DEFAULT, "Query for OID_FACTORY_EXTENDED_ADDRESS failed, %!NDIS_STATUS!", status);
+        LogError(DRIVER_DEFAULT, "Get SPINEL_PROP_HWADDR failed, %!STATUS!", status);
         return;
     }
 
-    // Validate the return header
-    if (bytesProcessed != SIZEOF_OT_FACTORY_EXTENDED_ADDRESS_REVISION_1 ||
-        OidBuffer.Header.Type != NDIS_OBJECT_TYPE_DEFAULT ||
-        OidBuffer.Header.Revision != OT_FACTORY_EXTENDED_ADDRESS_REVISION_1 ||
-        OidBuffer.Header.Size != SIZEOF_OT_FACTORY_EXTENDED_ADDRESS_REVISION_1)
-    {
-        LogError(DRIVER_DEFAULT, "Query for OID_OT_FACTORY_EXTENDED_ADDRESS returned invalid data");
-        return;
-    }
+    memcpy(&pFilter->otFactoryAddress, hwAddress, sizeof(pFilter->otFactoryAddress));
 
-    LogInfo(DRIVER_DEFAULT, "Interface %!GUID! cached factory Extended Mac Address: %llX", &pFilter->InterfaceGuid, OidBuffer.ExtendedAddress);
-
-    pFilter->otFactoryAddress = OidBuffer.ExtendedAddress;
+    LogInfo(DRIVER_DEFAULT, "Interface %!GUID! cached factory Extended Mac Address: %llX", &pFilter->InterfaceGuid, pFilter->otFactoryAddress);
 }
 
 VOID 
@@ -125,14 +107,17 @@ otLwfRadioInit(
 {
     LogFuncEntry(DRIVER_DEFAULT);
 
-    NT_ASSERT(pFilter->MiniportCapabilities.MiniportMode == OT_MP_MODE_RADIO);
+    NT_ASSERT(pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_RADIO_MODE);
+    NT_ASSERT((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_SLEEP) != 0);
 
     // Initialize the OpenThread radio capability flags
-    pFilter->otRadioCapabilities = kRadioCapsEnergyScan;
-    if ((pFilter->MiniportCapabilities.RadioCapabilities & OT_RADIO_CAP_ACK_TIMEOUT) != 0)
+    pFilter->otRadioCapabilities = 0;
+    if ((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_ACK_TIMEOUT) != 0)
         pFilter->otRadioCapabilities |= kRadioCapsAckTimeout;
-    if ((pFilter->MiniportCapabilities.RadioCapabilities & OT_RADIO_CAP_MAC_RETRY_AND_COLLISION_AVOIDANCE) != 0)
+    if ((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_MAC_RETRY_AND_COLLISION_AVOIDANCE) != 0)
         pFilter->otRadioCapabilities |= kRadioCapsTransmitRetries;
+    if ((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_ENERGY_SCAN) != 0)
+        pFilter->otRadioCapabilities |= kRadioCapsEnergyScan;
 
     pFilter->otPhyState = kStateDisabled;
     pFilter->otCurrentListenChannel = 0xFF;
@@ -164,27 +149,23 @@ void otPlatRadioSetPanId(_In_ otInstance *otCtx, uint16_t panid)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    NDIS_STATUS status;
-    ULONG bytesProcessed;
-    OT_PAND_ID OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_PAND_ID_REVISION_1, SIZEOF_OT_PAND_ID_REVISION_1}, panid };
+    NTSTATUS status;
 
     LogInfo(DRIVER_DEFAULT, "Interface %!GUID! set PanID: %X", &pFilter->InterfaceGuid, panid);
 
     pFilter->otPanID = panid;
 
     // Indicate to the miniport
-    status = 
-        otLwfSendInternalRequest(
+    status =
+        otLwfCmdSetProp(
             pFilter,
-            NdisRequestSetInformation,
-            OID_OT_PAND_ID,
-            &OidBuffer,
-            sizeof(OidBuffer),
-            &bytesProcessed
-            );
-    if (status != NDIS_STATUS_SUCCESS)
+            SPINEL_PROP_MAC_15_4_PANID,
+            SPINEL_DATATYPE_UINT16_S,
+            panid
+        );
+    if (NT_SUCCESS(status))
     {
-        LogError(DRIVER_DEFAULT, "Set for OID_OT_PAND_ID failed, %!NDIS_STATUS!", status);
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_PANID failed, %!STATUS!", status);
     }
 }
 
@@ -192,28 +173,23 @@ void otPlatRadioSetExtendedAddress(_In_ otInstance *otCtx, uint8_t *address)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    NDIS_STATUS status;
-    ULONG bytesProcessed;
-    OT_EXTENDED_ADDRESS OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_EXTENDED_ADDRESS_REVISION_1, SIZEOF_OT_EXTENDED_ADDRESS_REVISION_1} };
+    NTSTATUS status;
 
     LogInfo(DRIVER_DEFAULT, "Interface %!GUID! set Extended Mac Address: %llX", &pFilter->InterfaceGuid, *(ULONGLONG*)address);
 
     pFilter->otExtendedAddress = *(ULONGLONG*)address;
-    OidBuffer.ExtendedAddress = *(ULONGLONG*)address;
 
     // Indicate to the miniport
-    status = 
-        otLwfSendInternalRequest(
+    status =
+        otLwfCmdSetProp(
             pFilter,
-            NdisRequestSetInformation,
-            OID_OT_EXTENDED_ADDRESS,
-            &OidBuffer,
-            sizeof(OidBuffer),
-            &bytesProcessed
-            );
-    if (status != NDIS_STATUS_SUCCESS)
+            SPINEL_PROP_MAC_15_4_LADDR,
+            SPINEL_DATATYPE_EUI64_S,
+            address
+        );
+    if (NT_SUCCESS(status))
     {
-        LogError(DRIVER_DEFAULT, "Set for OID_OT_EXTENDED_ADDRESS failed, %!NDIS_STATUS!", status);
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_LADDR failed, %!STATUS!", status);
     }
 }
 
@@ -221,27 +197,23 @@ void otPlatRadioSetShortAddress(_In_ otInstance *otCtx, uint16_t address)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    NDIS_STATUS status;
-    ULONG bytesProcessed;
-    OT_SHORT_ADDRESS OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_SHORT_ADDRESS_REVISION_1, SIZEOF_OT_SHORT_ADDRESS_REVISION_1}, address };
+    NTSTATUS status;
 
     LogInfo(DRIVER_DEFAULT, "Interface %!GUID! set Short Mac Address: %X", &pFilter->InterfaceGuid, address);
 
     pFilter->otShortAddress = address;
 
     // Indicate to the miniport
-    status = 
-        otLwfSendInternalRequest(
+    status =
+        otLwfCmdSetProp(
             pFilter,
-            NdisRequestSetInformation,
-            OID_OT_SHORT_ADDRESS,
-            &OidBuffer,
-            sizeof(OidBuffer),
-            &bytesProcessed
-            );
-    if (status != NDIS_STATUS_SUCCESS)
+            SPINEL_PROP_MAC_15_4_SADDR,
+            SPINEL_DATATYPE_UINT16_S,
+            address
+        );
+    if (NT_SUCCESS(status))
     {
-        LogError(DRIVER_DEFAULT, "Set for OID_OT_SHORT_ADDRESS failed, %!NDIS_STATUS!", status);
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_SADDR failed, %!STATUS!", status);
     }
 }
 
@@ -249,25 +221,21 @@ void otPlatRadioSetPromiscuous(_In_ otInstance *otCtx, int aEnable)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    NDIS_STATUS status;
-    ULONG bytesProcessed;
-    OT_PROMISCUOUS_MODE OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_PROMISCUOUS_MODE_REVISION_1, SIZEOF_OT_PROMISCUOUS_MODE_REVISION_1}, (BOOLEAN)aEnable };
+    NTSTATUS status;
 
     pFilter->otPromiscuous = (BOOLEAN)aEnable;
 
     // Indicate to the miniport
-    status = 
-        otLwfSendInternalRequest(
+    status =
+        otLwfCmdSetProp(
             pFilter,
-            NdisRequestSetInformation,
-            OID_OT_PROMISCUOUS_MODE,
-            &OidBuffer,
-            sizeof(OidBuffer),
-            &bytesProcessed
-            );
-    if (status != NDIS_STATUS_SUCCESS)
+            SPINEL_PROP_MAC_PROMISCUOUS_MODE,
+            SPINEL_DATATYPE_UINT8_S,
+            aEnable != 0 ? SPINEL_MAC_PROMISCUOUS_MODE_NETWORK : SPINEL_MAC_PROMISCUOUS_MODE_OFF
+        );
+    if (NT_SUCCESS(status))
     {
-        LogError(DRIVER_DEFAULT, "Set for OID_OT_PROMISCUOUS_MODE failed, %!NDIS_STATUS!", status);
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_PROMISCUOUS_MODE failed, %!STATUS!", status);
     }
 }
 
@@ -316,8 +284,9 @@ ThreadError otPlatRadioSleep(_In_ otInstance *otCtx)
         pFilter->otPhyState = kStateSleep;
         LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateSleep.", pFilter);
         
-        if ((pFilter->MiniportCapabilities.RadioCapabilities & OT_RADIO_CAP_SLEEP) != 0)
+        if ((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_SLEEP) != 0)
         {
+            /* TODO
             NDIS_STATUS status;
             ULONG bytesProcessed;
             OT_SLEEP_MODE OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_SLEEP_MODE_REVISION_1, SIZEOF_OT_SLEEP_MODE_REVISION_1}, TRUE };
@@ -335,7 +304,7 @@ ThreadError otPlatRadioSleep(_In_ otInstance *otCtx)
             if (status != NDIS_STATUS_SUCCESS)
             {
                 LogError(DRIVER_DEFAULT, "Set for OID_OT_SLEEP_MODE failed, %!NDIS_STATUS!", status);
-            }
+            }*/
         }
     }
 
@@ -355,9 +324,10 @@ ThreadError otPlatRadioReceive(_In_ otInstance *otCtx, uint8_t aChannel)
     // If we are currently in the sleep state and the minport supports sleep 
     // mode, come out of sleep mode now.
     if (pFilter->otPhyState == kStateSleep)
-    {        
-        if ((pFilter->MiniportCapabilities.RadioCapabilities & OT_RADIO_CAP_SLEEP) != 0)
+    {
+        if ((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_SLEEP) != 0)
         {
+            /* TODO
             NDIS_STATUS status;
             ULONG bytesProcessed;
             OT_SLEEP_MODE OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_SLEEP_MODE_REVISION_1, SIZEOF_OT_SLEEP_MODE_REVISION_1}, FALSE };
@@ -375,35 +345,31 @@ ThreadError otPlatRadioReceive(_In_ otInstance *otCtx, uint8_t aChannel)
             if (status != NDIS_STATUS_SUCCESS)
             {
                 LogError(DRIVER_DEFAULT, "Set for OID_OT_SLEEP_MODE failed, %!NDIS_STATUS!", status);
-            }
+            }*/
         }
     }
 
     // Update current channel if different
     if (pFilter->otCurrentListenChannel != aChannel)
     {
-        NDIS_STATUS status;
-        ULONG bytesProcessed;
-        OT_CURRENT_CHANNEL OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_CURRENT_CHANNEL_REVISION_1, SIZEOF_OT_CURRENT_CHANNEL_REVISION_1}, aChannel };
-        
+        NTSTATUS status;
+
         NT_ASSERT(aChannel >= 11 && aChannel <= 26);
 
         LogInfo(DRIVER_DEFAULT, "Filter %p new Listen Channel = %u.", pFilter, aChannel);
         pFilter->otCurrentListenChannel = aChannel;
-        
+
         // Indicate to the miniport
-        status = 
-            otLwfSendInternalRequest(
+        status =
+            otLwfCmdSetProp(
                 pFilter,
-                NdisRequestSetInformation,
-                OID_OT_CURRENT_CHANNEL,
-                &OidBuffer,
-                sizeof(OidBuffer),
-                &bytesProcessed
-                );
-        if (status != NDIS_STATUS_SUCCESS)
+                SPINEL_PROP_PHY_CHAN,
+                SPINEL_DATATYPE_UINT8_S,
+                aChannel
+            );
+        if (NT_SUCCESS(status))
         {
-            LogError(DRIVER_DEFAULT, "Set for OID_OT_CURRENT_CHANNEL failed, %!NDIS_STATUS!", status);
+            LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_CHAN failed, %!STATUS!", status);
         }
     }
 
@@ -506,60 +472,16 @@ VOID otLwfRadioTransmitFrame(_In_ PMS_FILTER pFilter)
 
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p", pFilter);
 
-    otLwfRadioSendPacket(pFilter, &pFilter->otTransmitFrame);
+    otLwfCmdSendMacFrameAsync(pFilter, &pFilter->otTransmitFrame);
 
     LogFuncExit(DRIVER_DATA_PATH);
 }
 
 VOID 
-otLwfRadioSendPacket(
-    _In_ PMS_FILTER     pFilter,
-    _In_ RadioPacket*   Packet
-    )
-{
-    SIZE_T BytesCopied = 0;
-    PNET_BUFFER SendNetBuffer = NET_BUFFER_LIST_FIRST_NB(pFilter->SendNetBufferList);
-    OT_NBL_CONTEXT NblContext = { 0 /* Flags */, Packet->mChannel, Packet->mPower, 0 /* Lqi */ };
-
-    NT_ASSERT(NblContext.Channel >= 11 && NblContext.Channel <= 26);
-    NT_ASSERT(!pFilter->SendPending);
-
-    NT_ASSERT(Packet->mLength <= kMaxPHYPacketSize);
-
-    LogMacSend(pFilter, pFilter->SendNetBufferList, Packet->mLength, Packet->mPsdu);
-
-    // Copy to the NetBufferList
-    RtlCopyBufferToMdl(
-        Packet->mPsdu, 
-        SendNetBuffer->CurrentMdl, 
-        SendNetBuffer->CurrentMdlOffset, 
-        Packet->mLength, 
-        &BytesCopied
-        );
-    NT_ASSERT(BytesCopied == Packet->mLength);
-
-    // Set the length field
-    NET_BUFFER_DATA_LENGTH(SendNetBuffer) = Packet->mLength;
-
-    // Set the context
-    SetNBLContext(pFilter->SendNetBufferList, &NblContext);
-
-    // Reset the completion event
-    KeResetEvent(&pFilter->SendNetBufferListComplete);
-    pFilter->SendPending = TRUE;
-
-    // Send the NetBufferList
-    NdisFSendNetBufferLists(
-        pFilter->FilterHandle,
-        pFilter->SendNetBufferList,
-        NDIS_DEFAULT_PORT_NUMBER,
-        0
-        );
-}
-
-VOID 
 otLwfRadioTransmitFrameDone(
-    _In_ PMS_FILTER pFilter
+    _In_ PMS_FILTER pFilter,
+    _In_ NTSTATUS Status,
+    _In_ BOOLEAN FramePending
     )
 {
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p", pFilter);
@@ -573,18 +495,15 @@ otLwfRadioTransmitFrameDone(
     LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateReceive.", pFilter);
     KeSetEvent(&pFilter->EventWorkerThreadProcessNBLs, 0, FALSE);
 
-    if (STATUS_SUCCESS == pFilter->SendNetBufferList->Status)
+    if (STATUS_SUCCESS == Status)
     {
-        POT_NBL_CONTEXT SendNblContext = GetNBLContext(pFilter->SendNetBufferList);
-        BOOLEAN FramePending = (SendNblContext->Flags & OT_NBL_FLAG_ACK_FRAME_PENDING) != 0 || pFilter->CountPendingRecvNBLs != 0;
-
         otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, FramePending, kThreadError_None);
     }
-    else if (STATUS_DEVICE_BUSY == pFilter->SendNetBufferList->Status)
+    else if (STATUS_DEVICE_BUSY == Status)
     {
         otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_ChannelAccessFailure);
     }
-    else if (STATUS_TIMEOUT == pFilter->SendNetBufferList->Status)
+    else if (STATUS_TIMEOUT == Status)
     {
         otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_NoAck);
     }
@@ -601,7 +520,10 @@ otPlatRadioSendPendingMacOffload(
     _In_ PMS_FILTER pFilter
     )
 {
-    NDIS_STATUS status;
+    // TODO
+    UNREFERENCED_PARAMETER(pFilter);
+    return STATUS_NOT_SUPPORTED;
+    /*NDIS_STATUS status;
     ULONG bytesProcessed;
     UCHAR ShortAddressCount = pFilter->otPendingMacOffloadEnabled == TRUE ? pFilter->otPendingShortAddressCount : 0;
     UCHAR ExtendedAddressCount = pFilter->otPendingMacOffloadEnabled == TRUE ? pFilter->otPendingExtendedAddressCount : 0;
@@ -648,7 +570,7 @@ otPlatRadioSendPendingMacOffload(
 
     FILTER_FREE_MEM(OidBuffer);
 
-    return status;
+    return status;*/
 }
 
 void otPlatRadioEnableSrcMatch(_In_ otInstance *otCtx, bool aEnable)
@@ -836,7 +758,11 @@ ThreadError otPlatRadioEnergyScan(_In_ otInstance *otCtx, uint8_t aScanChannel, 
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    NDIS_STATUS status;
+    UNREFERENCED_PARAMETER(pFilter);
+    UNREFERENCED_PARAMETER(aScanChannel);
+    UNREFERENCED_PARAMETER(aScanDuration);
+    return kThreadError_NotImplemented;
+    /*NDIS_STATUS status;
     ULONG bytesProcessed;
     OT_ENERGY_SCAN OidBuffer = { {NDIS_OBJECT_TYPE_DEFAULT, OT_ENERGY_SCAN_REVISION_1, SIZEOF_OT_ENERGY_SCAN_REVISION_1}, aScanChannel, aScanDuration };
     
@@ -860,7 +786,7 @@ ThreadError otPlatRadioEnergyScan(_In_ otInstance *otCtx, uint8_t aScanChannel, 
         LogError(DRIVER_DEFAULT, "Set for OID_OT_ENERGY_SCAN failed, %!NDIS_STATUS!", status);
     }
 
-    return NT_SUCCESS(status) ? kThreadError_None : kThreadError_Failed;
+    return NT_SUCCESS(status) ? kThreadError_None : kThreadError_Failed;*/
 }
 
 inline USHORT getDstShortAddress(const UCHAR *frame)

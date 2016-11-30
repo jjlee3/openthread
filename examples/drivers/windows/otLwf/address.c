@@ -382,7 +382,7 @@ otLwfRadioAddressesUpdated(
     ULONG FoundInOpenThread = 0; // Bit field
     ULONG OriginalCacheLength = pFilter->otCachedAddrCount;
     
-    NT_ASSERT(pFilter->MiniportCapabilities.MiniportMode == OT_MP_MODE_RADIO);
+    NT_ASSERT(pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_RADIO_MODE);
 
     const otNetifAddress* addr = otGetUnicastAddresses(pFilter->otCtx);
 
@@ -428,7 +428,7 @@ otLwfTunAddressesUpdated(
 
     LogFuncEntry(DRIVER_DEFAULT);
     
-    NT_ASSERT (pFilter->MiniportCapabilities.MiniportMode == OT_MP_MODE_THREAD);
+    NT_ASSERT (pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_THREAD_MODE);
 
     *aNotifFlags = 0;
 

@@ -87,6 +87,6 @@ VOID otLwfRadioReceiveFrame(_In_ PMS_FILTER pFilter, _In_ PNET_BUFFER_LIST NetBu
 VOID otLwfRadioTransmitFrame(_In_ PMS_FILTER pFilter);
 
 // Indicates the transmit frame finished sending
-VOID otLwfRadioTransmitFrameDone(_In_ PMS_FILTER pFilter);
+VOID otLwfRadioTransmitFrameDone(_In_ PMS_FILTER pFilter, _In_ NTSTATUS status, _In_ BOOLEAN FramePending);
 
 #endif  //_OTLWF_RADIO_H

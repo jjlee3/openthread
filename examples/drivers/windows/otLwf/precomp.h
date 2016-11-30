@@ -75,8 +75,6 @@ RtlCopyBufferToMdl(
 #include <ncp/spinel.h>
 
 #include <otLwfIoctl.h>
-#include <otOID.h>
-#include <otNBLContext.h>
 
 #ifdef _KERNEL_MODE
 #define CODE_SEG(segment) __declspec(code_seg(segment))
@@ -115,5 +113,6 @@ typedef struct UDPHeader
 #include "oid.h"
 #include "radio.h"
 #include "filter.h"
+#include "command.h"
 #include "thread.h"
 #include "tunnel.h"

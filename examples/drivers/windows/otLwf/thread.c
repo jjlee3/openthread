@@ -42,45 +42,11 @@ otLwfInitializeThreadMode(
     )
 {
     NDIS_STATUS Status = NDIS_STATUS_SUCCESS;
-    PNET_BUFFER SendNetBuffer;
 
     LogFuncEntry(DRIVER_DEFAULT);
 
     do
     {
-        // Create the SendNetBufferList
-        pFilter->SendNetBufferList =
-            NdisAllocateNetBufferAndNetBufferList(
-                pFilter->NetBufferListPool,     // PoolHandle
-                0,                              // ContextSize
-                0,                              // ContextBackFill
-                NULL,                           // MdlChain
-                0,                              // DataOffset
-                0                               // DataLength
-                );
-        if (pFilter->SendNetBufferList == NULL)
-        {
-            Status = NDIS_STATUS_RESOURCES;
-            LogWarning(DRIVER_DEFAULT, "Failed to create Send NetBufferList");
-            break;
-        }
-        
-        // Initialize NetBuffer fields
-        SendNetBuffer = NET_BUFFER_LIST_FIRST_NB(pFilter->SendNetBufferList);
-        NET_BUFFER_CURRENT_MDL(SendNetBuffer) = NULL;
-        NET_BUFFER_CURRENT_MDL_OFFSET(SendNetBuffer) = 0;
-        NET_BUFFER_DATA_LENGTH(SendNetBuffer) = 0;
-        NET_BUFFER_DATA_OFFSET(SendNetBuffer) = 0;
-        NET_BUFFER_FIRST_MDL(SendNetBuffer) = NULL;
-
-        // Allocate the NetBuffer for SendNetBufferList
-        Status = NdisRetreatNetBufferDataStart(SendNetBuffer, kMaxPHYPacketSize, 0, NULL);
-        if (Status != NDIS_STATUS_SUCCESS)
-        {
-            LogError(DRIVER_DEFAULT, "Failed to allocate NB for Send NetBufferList, %!NDIS_STATUS!", Status);
-            break;
-        }
-
         KeInitializeEvent(
             &pFilter->SendNetBufferListComplete,
             SynchronizationEvent, // auto-clearing event
@@ -159,13 +125,6 @@ otLwfInitializeThreadMode(
         {
             ExDeleteTimer(pFilter->EventHighPrecisionTimer, TRUE, FALSE, NULL);
         }
-
-        // Free NBL
-        if (pFilter->SendNetBufferList)
-        {
-            NdisAdvanceNetBufferDataStart(NET_BUFFER_LIST_FIRST_NB(pFilter->SendNetBufferList), kMaxPHYPacketSize, TRUE, NULL);
-            NdisFreeNetBufferList(pFilter->SendNetBufferList);
-        }
     }
 
     LogFuncExitNDIS(DRIVER_DEFAULT, Status);
@@ -186,10 +145,6 @@ otLwfUninitializeThreadMode(
     
     // Free timer
     ExDeleteTimer(pFilter->EventHighPrecisionTimer, TRUE, FALSE, NULL);
-
-    // Free NBL & Pools
-    NdisAdvanceNetBufferDataStart(NET_BUFFER_LIST_FIRST_NB(pFilter->SendNetBufferList), kMaxPHYPacketSize, TRUE, NULL);
-    NdisFreeNetBufferList(pFilter->SendNetBufferList);
 
     LogFuncExit(DRIVER_DEFAULT);
 }

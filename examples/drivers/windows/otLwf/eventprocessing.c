@@ -318,12 +318,7 @@ otLwfEventProcessingIndicateAddressChange(
     _In_ PIN6_ADDR              pAddr
     )
 {
-    if (pFilter->InternalStateInitialized == FALSE)
-    {
-        return;
-    }
-
-    if (pFilter->MiniportCapabilities.MiniportMode == OT_MP_MODE_RADIO)
+    if (pFilter->DeviceCapabilities == OTLWF_DEVICE_STATUS_RADIO_MODE)
     {
         POTLWF_ADDR_EVENT Event = FILTER_ALLOC_MEM(pFilter->FilterHandle, sizeof(OTLWF_ADDR_EVENT));
         if (Event == NULL)
@@ -875,12 +870,13 @@ otLwfEventWorkerThread(
                                 // Copy NB data into message
                                 if (NT_SUCCESS(CopyDataBuffer(CurrNb, NET_BUFFER_DATA_LENGTH(CurrNb), &pFilter->otReceiveMessage)))
                                 {
+                                    /* TODO
                                     POT_NBL_CONTEXT NblContext = GetNBLContext(CurrNbl);
                                     pFilter->otReceiveFrame.mChannel = NblContext->Channel;
                                     pFilter->otReceiveFrame.mPower = NblContext->Power;
                                     pFilter->otReceiveFrame.mLqi = NblContext->Lqi;
                                     pFilter->otReceiveFrame.mLength = (uint8_t)NET_BUFFER_DATA_LENGTH(CurrNb);
-                                    otLwfRadioReceiveFrame(pFilter, CurrNbl);
+                                    otLwfRadioReceiveFrame(pFilter, CurrNbl);*/
                                     NblStatus = STATUS_SUCCESS;
                                 }
                             }
@@ -978,7 +974,7 @@ otLwfEventWorkerThread(
         else if (status == STATUS_WAIT_0 + 4) // SendNetBufferListComplete fired
         {
             // Handle the completion of the NBL send
-            otLwfRadioTransmitFrameDone(pFilter);
+            otLwfRadioTransmitFrameDone(pFilter, STATUS_SUCCESS, FALSE); // TODO - Extra params
         }
         else if (status == STATUS_WAIT_0 + 5) // EventWorkerThreadProcessIrp fired
         {
