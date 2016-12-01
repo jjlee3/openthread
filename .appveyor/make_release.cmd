@@ -71,6 +71,7 @@ REM Copy the tools
 
 copy tools\windows\* release
 copy tools\windows\%Platform%\otInstall.exe release
+copy "C:\Program Files (x86)\Windows Kits\10\Tools\%Platform%\devcon.exe" release
 
 REM Generate the trace format files to decode the WPP logs
 
