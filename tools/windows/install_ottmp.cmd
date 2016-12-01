@@ -26,4 +26,8 @@ REM  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 REM  POSSIBILITY OF SUCH DAMAGE.
 REM
 
+REM Install the certifications to the cert stores
+certutil -addstore root ottmp.cer
+certutil -addstore TrustedPublisher ottmp.cer
+
 devcon install ottmp.inf root\ottmp
