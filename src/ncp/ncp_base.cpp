@@ -3089,6 +3089,7 @@ ThreadError NcpBase::SetPropertyHandler_PHY_ENABLED(uint8_t header, spinel_prop_
     {
         if (value == false)
         {
+            otPlatRadioSleep(mInstance);
             errorCode = otPlatRadioDisable(mInstance);
         }
         else
