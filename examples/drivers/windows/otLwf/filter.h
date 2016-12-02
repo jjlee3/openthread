@@ -191,10 +191,11 @@ typedef struct _MS_FILTER
         KEVENT                      EventWorkerThreadStopEvent;
         KEVENT                      EventWorkerThreadProcessAddressChanges;
         KEVENT                      EventWorkerThreadProcessNBLs;
+        KEVENT                      EventWorkerThreadProcessMacFrames;
         NDIS_SPIN_LOCK              EventsLock;
         LIST_ENTRY                  AddressChangesHead;
         LIST_ENTRY                  NBLsHead;
-        ULONG                       CountPendingRecvNBLs;
+        LIST_ENTRY                  MacFramesHead;
         LARGE_INTEGER               NextAlarmTickCount;
         KEVENT                      EventWorkerThreadWaitTimeUpdated;
         KEVENT                      EventWorkerThreadProcessTasklets;
@@ -225,6 +226,8 @@ typedef struct _MS_FILTER
         uint8_t                     otTransmitMessage[kMaxPHYPacketSize];
         RadioPacket                 otReceiveFrame;
         RadioPacket                 otTransmitFrame;
+        ThreadError                 otLastTransmitError;
+        BOOLEAN                     otLastTransmitFramePending;
         CHAR                        otLastEnergyScanMaxRssi;
         otPlatRadioReceiveDone      otReceiveDoneCallback;
         otPlatRadioTransmitDone     otTransmitDoneCallback;

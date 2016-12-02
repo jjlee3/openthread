@@ -170,11 +170,25 @@ otLwfCmdProcess(
         // If this is a 'Value Is' command, process it for notification of state changes.
         if (command == SPINEL_CMD_PROP_VALUE_IS)
         {
-            otLwfTunValueIs(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            if (pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_RADIO_MODE)
+            {
+                otLwfThreadValueIs(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            }
+            else if (pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_THREAD_MODE)
+            {
+                otLwfTunValueIs(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            }
         }
         else if (command == SPINEL_CMD_PROP_VALUE_INSERTED)
         {
-            otLwfTunValueInserted(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            if (pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_RADIO_MODE)
+            {
+                otLwfThreadValueInserted(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            }
+            else if (pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_THREAD_MODE)
+            {
+                otLwfTunValueInserted(pFilter, DispatchLevel, key, value_data_ptr, value_data_len);
+            }
         }
     }
     // If there was a transaction ID, then look for the corresponding command handler
@@ -609,7 +623,7 @@ otLwfCmdSendIp6PacketAsync(
 
     NetBufferList =
         NdisAllocateNetBufferAndNetBufferList(
-            pFilter->cmdNblPool,     // PoolHandle
+            pFilter->cmdNblPool,            // PoolHandle
             0,                              // ContextSize
             0,                              // ContextBackFill
             NULL,                           // MdlChain
@@ -715,6 +729,46 @@ exit:
     return status;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+otLwfCmdSendMacFrameComplete(
+    _In_ PMS_FILTER pFilter,
+    _In_ PVOID Context,
+    _In_ UINT Command,
+    _In_ spinel_prop_key_t Key,
+    _In_reads_bytes_(DataLength) const uint8_t* Data,
+    _In_ spinel_size_t DataLength
+    )
+{
+    UNREFERENCED_PARAMETER(Context);
+
+    pFilter->otLastTransmitError = kThreadError_Abort;
+
+    if (Data && Command == SPINEL_CMD_PROP_VALUE_IS)
+    {
+        if (Key == SPINEL_PROP_LAST_STATUS)
+        {
+            spinel_status_t spinel_status = SPINEL_STATUS_OK;
+            spinel_ssize_t packed_len = spinel_datatype_unpack(Data, DataLength, "i", &spinel_status);
+            if (packed_len > 0)
+            {
+                pFilter->otLastTransmitError = SpinelStatusToThreadError(spinel_status);
+            }
+        }
+        else if (Key == SPINEL_PROP_STREAM_RAW)
+        {
+            spinel_ssize_t packed_len = spinel_datatype_unpack(Data, DataLength, "ib", &pFilter->otLastTransmitError, &pFilter->otLastTransmitFramePending);
+            if (packed_len < 0 || (ULONG)packed_len > DataLength)
+            {
+                pFilter->otLastTransmitError = kThreadError_Abort;
+            }
+        }
+    }
+
+    // Set the completion event
+    KeSetEvent(&pFilter->SendNetBufferListComplete, IO_NO_INCREMENT, FALSE);
+}
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID
 otLwfCmdSendMacFrameAsync(
@@ -722,48 +776,31 @@ otLwfCmdSendMacFrameAsync(
     _In_ RadioPacket*   Packet
     )
 {
-    UNREFERENCED_PARAMETER(pFilter);
-    UNREFERENCED_PARAMETER(Packet);
-    KeSetEvent(&pFilter->SendNetBufferListComplete, IO_NO_INCREMENT, FALSE);
-    // TODO
-    //SIZE_T BytesCopied = 0;
-    //PNET_BUFFER SendNetBuffer = NET_BUFFER_LIST_FIRST_NB(pFilter->SendNetBufferList);
-    //OT_NBL_CONTEXT NblContext = { 0 /* Flags */, Packet->mChannel, Packet->mPower, 0 /* Lqi */ };
+    // Reset the completion event
+    KeResetEvent(&pFilter->SendNetBufferListComplete);
+    pFilter->SendPending = TRUE;
 
-    //NT_ASSERT(NblContext.Channel >= 11 && NblContext.Channel <= 26);
-    //NT_ASSERT(!pFilter->SendPending);
-
-    //NT_ASSERT(Packet->mLength <= kMaxPHYPacketSize);
-
-    //LogMacSend(pFilter, pFilter->SendNetBufferList, Packet->mLength, Packet->mPsdu);
-
-    //// Copy to the NetBufferList
-    //RtlCopyBufferToMdl(
-    //    Packet->mPsdu,
-    //    SendNetBuffer->CurrentMdl,
-    //    SendNetBuffer->CurrentMdlOffset,
-    //    Packet->mLength,
-    //    &BytesCopied
-    //);
-    //NT_ASSERT(BytesCopied == Packet->mLength);
-
-    //// Set the length field
-    //NET_BUFFER_DATA_LENGTH(SendNetBuffer) = Packet->mLength;
-
-    //// Set the context
-    //SetNBLContext(pFilter->SendNetBufferList, &NblContext);
-
-    //// Reset the completion event
-    //KeResetEvent(&pFilter->SendNetBufferListComplete);
-    //pFilter->SendPending = TRUE;
-
-    //// Send the NetBufferList
-    //NdisFSendNetBufferLists(
-    //    pFilter->FilterHandle,
-    //    pFilter->SendNetBufferList,
-    //    NDIS_DEFAULT_PORT_NUMBER,
-    //    0
-    //);
+    NTSTATUS status =
+        otLwfCmdSendAsync(
+            pFilter,
+            otLwfCmdSendMacFrameComplete,
+            NULL,
+            NULL,
+            SPINEL_CMD_PROP_VALUE_SET,
+            SPINEL_PROP_STREAM_RAW,
+            Packet->mLength + 20,
+            "DCc",
+            Packet->mPsdu,
+            (uint32_t)Packet->mLength,
+            Packet->mChannel,
+            Packet->mPower
+            );
+    if (!NT_SUCCESS(status))
+    {
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_STREAM_RAW failed, %!STATUS!", status);
+        pFilter->otLastTransmitError = kThreadError_Abort;
+        KeSetEvent(&pFilter->SendNetBufferListComplete, IO_NO_INCREMENT, FALSE);
+    }
 }
 
 //

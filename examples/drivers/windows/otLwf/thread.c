@@ -58,6 +58,7 @@ otLwfInitializeThreadMode(
         NdisAllocateSpinLock(&pFilter->EventsLock);
         InitializeListHead(&pFilter->AddressChangesHead);
         InitializeListHead(&pFilter->NBLsHead);
+        InitializeListHead(&pFilter->MacFramesHead);
         InitializeListHead(&pFilter->EventIrpListHead);
         KeInitializeEvent(
             &pFilter->EventWorkerThreadStopEvent,
@@ -85,6 +86,11 @@ otLwfInitializeThreadMode(
             FALSE                 // event initially non-signalled
             );
         KeInitializeEvent(
+            &pFilter->EventWorkerThreadProcessMacFrames,
+            SynchronizationEvent, // auto-clearing event
+            FALSE                 // event initially non-signalled
+            );
+        KeInitializeEvent(
             &pFilter->EventWorkerThreadProcessIrp,
             SynchronizationEvent, // auto-clearing event
             FALSE                 // event initially non-signalled
@@ -103,6 +109,20 @@ otLwfInitializeThreadMode(
         if (pFilter->EventHighPrecisionTimer == NULL)
         {
             LogError(DRIVER_DEFAULT, "Failed to allocate timer!");
+            break;
+        }
+
+        // Indicate binding to the Radio layer on the device
+        Status =
+            otLwfCmdSetProp(
+                pFilter,
+                SPINEL_PROP_BINDING_STATE,
+                SPINEL_DATATYPE_UINT8_S,
+                SPINEL_BINDING_STATE_RADIO
+            );
+        if (!NT_SUCCESS(Status))
+        {
+            LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_BINDING_STATE failed, %!STATUS!", Status);
             break;
         }
 
@@ -483,6 +503,93 @@ void otLwfCommissionerPanIdConflictCallback(uint16_t aPanId, uint32_t aChannelMa
         
         otLwfIndicateNotification(NotifEntry);
     }
+
+    LogFuncExit(DRIVER_DEFAULT);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+otLwfThreadValueIs(
+    _In_ PMS_FILTER pFilter,
+    _In_ BOOLEAN DispatchLevel,
+    _In_ spinel_prop_key_t key,
+    _In_reads_bytes_(value_data_len) const uint8_t* value_data_ptr,
+    _In_ spinel_size_t value_data_len
+    )
+{
+    LogFuncEntryMsg(DRIVER_DEFAULT, "[%p] received Value for %s", pFilter, spinel_prop_key_to_cstr(key));
+
+    if (key == SPINEL_PROP_LAST_STATUS)
+    {
+        spinel_status_t status = SPINEL_STATUS_OK;
+        spinel_datatype_unpack(value_data_ptr, value_data_len, "i", &status);
+
+        if ((status >= SPINEL_STATUS_RESET__BEGIN) && (status <= SPINEL_STATUS_RESET__END))
+        {
+            LogInfo(DRIVER_DEFAULT, "Interface %!GUID! was reset (status %d).", &pFilter->InterfaceGuid, status);
+            // TODO - Handle reset
+        }
+    }
+    else if (key == SPINEL_PROP_STREAM_RAW)
+    {
+        if (value_data_len < 256)
+        {
+            otLwfEventProcessingIndicateNewMacFrameCommand(
+                pFilter,
+                DispatchLevel,
+                value_data_ptr,
+                (uint8_t)value_data_len);
+        }
+    }
+    else if (key == SPINEL_PROP_STREAM_DEBUG)
+    {
+        const uint8_t* output = NULL;
+        UINT output_len = 0;
+        spinel_ssize_t ret;
+
+        ret = spinel_datatype_unpack(
+            value_data_ptr,
+            value_data_len,
+            SPINEL_DATATYPE_DATA_S,
+            &output,
+            &output_len);
+
+        NT_ASSERT(ret > 0);
+        if (ret > 0 && output && output_len <= (UINT)ret)
+        {
+            if (strnlen((char*)output, output_len) != output_len)
+            {
+                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", (char*)output);
+            }
+            else if (output_len < 128)
+            {
+                char strOutput[128] = { 0 };
+                memcpy(strOutput, output, output_len);
+                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", strOutput);
+            }
+        }
+    }
+
+    LogFuncExit(DRIVER_DEFAULT);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+otLwfThreadValueInserted(
+    _In_ PMS_FILTER pFilter,
+    _In_ BOOLEAN DispatchLevel,
+    _In_ spinel_prop_key_t key,
+    _In_reads_bytes_(value_data_len) const uint8_t* value_data_ptr,
+    _In_ spinel_size_t value_data_len
+    )
+{
+    LogFuncEntryMsg(DRIVER_DEFAULT, "[%p] received Value Inserted for %s", pFilter, spinel_prop_key_to_cstr(key));
+
+    UNREFERENCED_PARAMETER(pFilter);
+    UNREFERENCED_PARAMETER(DispatchLevel);
+    UNREFERENCED_PARAMETER(key);
+    UNREFERENCED_PARAMETER(value_data_ptr);
+    UNREFERENCED_PARAMETER(value_data_len);
 
     LogFuncExit(DRIVER_DEFAULT);
 }

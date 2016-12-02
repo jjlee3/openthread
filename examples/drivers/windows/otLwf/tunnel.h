@@ -92,7 +92,7 @@ otLwfTunValueInserted(
     _In_ spinel_size_t value_data_len
     );
 
-// Called in response to receiving a spinel packet command
+// Called in response to receiving a Spinel Ip6 packet command
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void 
 otLwfTunReceiveIp6Packet(

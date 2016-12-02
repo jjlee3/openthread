@@ -39,7 +39,6 @@ void
 LogMac(
     _In_ PCSTR szDir,
     _In_ PMS_FILTER pFilter,
-    _In_ PNET_BUFFER_LIST NetBufferList,
     ULONG frameLength,
     _In_reads_bytes_(frameLength) PUCHAR frame
     );
@@ -47,8 +46,8 @@ LogMac(
 const char MacSend[] = "MAC_SEND";
 const char MacRecv[] = "MAC_RECV";
 
-#define LogMacSend(pFilter, NBL, frameLength, frame) LogMac(MacSend, pFilter, NBL, frameLength, frame)
-#define LogMacRecv(pFilter, NBL, frameLength, frame) LogMac(MacRecv, pFilter, NBL, frameLength, frame)
+#define LogMacSend(pFilter, frameLength, frame) LogMac(MacSend, pFilter, frameLength, frame)
+#define LogMacRecv(pFilter, frameLength, frame) LogMac(MacRecv, pFilter, frameLength, frame)
 
 void 
 otPlatReset(
@@ -56,8 +55,27 @@ otPlatReset(
     )
 {
     NT_ASSERT(otCtx);
-    // This function does nothing currently.
-    UNREFERENCED_PARAMETER(otCtx);
+    PMS_FILTER pFilter = otCtxToFilter(otCtx);
+    NTSTATUS status;
+
+    LogInfo(DRIVER_DEFAULT, "Interface %!GUID! resetting...", &pFilter->InterfaceGuid);
+
+    // Indicate to the miniport
+    status =
+        otLwfCmdSendAsync(
+            pFilter,
+            NULL,
+            NULL,
+            NULL,
+            SPINEL_CMD_RESET,
+            0,
+            0,
+            NULL
+        );
+    if (NT_SUCCESS(status))
+    {
+        LogError(DRIVER_DEFAULT, "Send SPINEL_CMD_RESET failed, %!STATUS!", status);
+    }
 }
 
 otPlatResetReason 
@@ -66,7 +84,7 @@ otPlatGetResetReason(
     )
 {
     NT_ASSERT(otCtx);
-    UNREFERENCED_PARAMETER(otCtx);
+    UNREFERENCED_PARAMETER(otCtx); // TODO - Cache from last status for RESET
     return kPlatResetReason_PowerOn;
 }
 
@@ -85,7 +103,7 @@ otLwfRadioGetFactoryAddress(
         otLwfCmdGetProp(
             pFilter,
             NULL,
-            SPINEL_PROP_HWADDR, // TODO - Update NCP to return factory address for this
+            SPINEL_PROP_HWADDR,
             SPINEL_DATATYPE_EUI64_S,
             &hwAddress
         );
@@ -253,30 +271,58 @@ ThreadError otPlatRadioEnable(_In_ otInstance *otCtx)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    
+    NTSTATUS status;
+
     NT_ASSERT(pFilter->otPhyState <= kStateSleep);
     if (pFilter->otPhyState > kStateSleep) return kThreadError_Busy;
 
     pFilter->otPhyState = kStateSleep;
-    
+
+    // Indicate to the miniport
+    status =
+        otLwfCmdSetProp(
+            pFilter,
+            SPINEL_PROP_PHY_ENABLED,
+            SPINEL_DATATYPE_BOOL_S,
+            TRUE
+        );
+    if (NT_SUCCESS(status))
+    {
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_ENABLED (true) failed, %!STATUS!", status);
+    }
+
     LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateSleep.", pFilter);
 
-    return kThreadError_None;
+    return NT_SUCCESS(status) ? kThreadError_None : kThreadError_Failed;
 }
 
 ThreadError otPlatRadioDisable(_In_ otInstance *otCtx)
 {
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
-    
+    NTSTATUS status;
+
     NT_ASSERT(pFilter->otPhyState <= kStateSleep);
     if (pFilter->otPhyState > kStateSleep) return kThreadError_Busy;
 
     pFilter->otPhyState = kStateDisabled;
-    
+
+    // Indicate to the miniport
+    status =
+        otLwfCmdSetProp(
+            pFilter,
+            SPINEL_PROP_PHY_ENABLED,
+            SPINEL_DATATYPE_BOOL_S,
+            FALSE
+        );
+    if (NT_SUCCESS(status))
+    {
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_ENABLED (false) failed, %!STATUS!", status);
+    }
+
     LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateDisabled.", pFilter);
 
-    return kThreadError_None;
+    return NT_SUCCESS(status) ? kThreadError_None : kThreadError_Failed;
 }
 
 ThreadError otPlatRadioSleep(_In_ otInstance *otCtx)
@@ -430,20 +476,20 @@ int otPlatRadioGetPromiscuous(_In_ otInstance *otCtx)
 VOID 
 otLwfRadioReceiveFrame(
     _In_ PMS_FILTER pFilter,
-    _In_ PNET_BUFFER_LIST NetBufferList
+    _In_ ThreadError errorCode
     )
 {    
     NT_ASSERT(pFilter->otReceiveFrame.mChannel >= 11 && pFilter->otReceiveFrame.mChannel <= 26);
 
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p", pFilter);
 
-    LogMacRecv(pFilter, NetBufferList, pFilter->otReceiveFrame.mLength, pFilter->otReceiveFrame.mPsdu);
+    LogMacRecv(pFilter, pFilter->otReceiveFrame.mLength, pFilter->otReceiveFrame.mPsdu);
 
     NT_ASSERT(pFilter->otPhyState > kStateDisabled);
     if (pFilter->otPhyState > kStateDisabled)
     {
         NT_ASSERT(pFilter->otReceiveDoneCallback);
-        pFilter->otReceiveDoneCallback(pFilter->otCtx, &pFilter->otReceiveFrame, kThreadError_None);
+        pFilter->otReceiveDoneCallback(pFilter->otCtx, &pFilter->otReceiveFrame, errorCode);
     }
     else
     {
@@ -481,6 +527,8 @@ VOID otLwfRadioTransmitFrame(_In_ PMS_FILTER pFilter)
 {
     NT_ASSERT(pFilter->otPhyState == kStateTransmit);
 
+    LogMacSend(pFilter, pFilter->otTransmitFrame.mLength, pFilter->otTransmitFrame.mPsdu);
+
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p", pFilter);
 
     otLwfCmdSendMacFrameAsync(pFilter, &pFilter->otTransmitFrame);
@@ -490,15 +538,13 @@ VOID otLwfRadioTransmitFrame(_In_ PMS_FILTER pFilter)
 
 VOID 
 otLwfRadioTransmitFrameDone(
-    _In_ PMS_FILTER pFilter,
-    _In_ NTSTATUS Status,
-    _In_ BOOLEAN FramePending
+    _In_ PMS_FILTER pFilter
     )
 {
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p", pFilter);
 
     pFilter->SendPending = FALSE;
-    
+
     NT_ASSERT(pFilter->otPhyState == kStateTransmit);
     NT_ASSERT(pFilter->otTransmitDoneCallback);
 
@@ -507,22 +553,7 @@ otLwfRadioTransmitFrameDone(
     LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateReceive.", pFilter);
     KeSetEvent(&pFilter->EventWorkerThreadProcessNBLs, 0, FALSE);
 
-    if (STATUS_SUCCESS == Status)
-    {
-        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, FramePending, kThreadError_None);
-    }
-    else if (STATUS_DEVICE_BUSY == Status)
-    {
-        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_ChannelAccessFailure);
-    }
-    else if (STATUS_TIMEOUT == Status)
-    {
-        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_NoAck);
-    }
-    else
-    {
-        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_Abort);
-    }
+    pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, pFilter->otLastTransmitFramePending, pFilter->otLastTransmitError);
 
     LogFuncExit(DRIVER_DATA_PATH);
 }
@@ -825,7 +856,6 @@ void
 LogMac(
     _In_ PCSTR szDir,
     _In_ PMS_FILTER pFilter,
-    _In_ PNET_BUFFER_LIST NetBufferList,
     ULONG frameLength,
     _In_reads_bytes_(frameLength) PUCHAR frame
     )
@@ -840,42 +870,42 @@ LogMac(
     switch (frame[1] & (IEEE802154_DST_ADDR_MASK | IEEE802154_SRC_ADDR_MASK))
     {
     case IEEE802154_DST_ADDR_NONE | IEEE802154_SRC_ADDR_NONE:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : null => null (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: null => null (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_NONE | IEEE802154_SRC_ADDR_SHORT:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : %X => null (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %X => null (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET), frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_NONE | IEEE802154_SRC_ADDR_EXT:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : %llX => null (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %llX => null (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET), frameLength, AckRequested, FramePending);
         break;
         
     case IEEE802154_DST_ADDR_SHORT | IEEE802154_SRC_ADDR_NONE:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : null => %X (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getDstShortAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: null => %X (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getDstShortAddress(frame), frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_SHORT | IEEE802154_SRC_ADDR_SHORT:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : %X => %X (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+2), getDstShortAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %X => %X (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+2), getDstShortAddress(frame), frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_SHORT | IEEE802154_SRC_ADDR_EXT:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : %llX => %X (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+2), getDstShortAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %llX => %X (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+2), getDstShortAddress(frame), frameLength, AckRequested, FramePending);
         break;
         
     case IEEE802154_DST_ADDR_EXT | IEEE802154_SRC_ADDR_NONE:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : null => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getDstExtAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: null => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getDstExtAddress(frame), frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_EXT | IEEE802154_SRC_ADDR_SHORT:
-        LogVerbose(DRIVER_DATA_PATH, "Filt: %p, %s: %p : %X => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+8), getDstExtAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %X => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcShortAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+8), getDstExtAddress(frame), frameLength, AckRequested, FramePending);
         break;
     case IEEE802154_DST_ADDR_EXT | IEEE802154_SRC_ADDR_EXT:
-        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %p : %llX => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
-            pFilter, szDir, NetBufferList, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+8), getDstExtAddress(frame), frameLength, AckRequested, FramePending);
+        LogVerbose(DRIVER_DATA_PATH, "Filter: %p, %s: %llX => %llX (%u bytes, AckReq=%u, FramePending=%u)", 
+            pFilter, szDir, getSrcExtAddress(frameLength, frame, IEEE802154_DSTADDR_OFFSET+8), getDstExtAddress(frame), frameLength, AckRequested, FramePending);
         break;
     }
     

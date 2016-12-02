@@ -102,6 +102,20 @@ otLwfTunInitialize(
 
     // TODO - Query other values and capabilities
 
+    // Indicate binding to the Thread layer on the device
+    Status =
+        otLwfCmdSetProp(
+            pFilter,
+            SPINEL_PROP_BINDING_STATE,
+            SPINEL_DATATYPE_UINT8_S,
+            SPINEL_BINDING_STATE_THREAD
+        );
+    if (!NT_SUCCESS(Status))
+    {
+        LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_BINDING_STATE failed, %!STATUS!", Status);
+        goto error;
+    }
+
 error:
 
     if (!NT_SUCCESS(Status))

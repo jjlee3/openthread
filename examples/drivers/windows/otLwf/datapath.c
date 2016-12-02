@@ -202,9 +202,11 @@ Arguments:
 {
     PMS_FILTER          pFilter = (PMS_FILTER)FilterModuleContext;
     BOOLEAN             DispatchLevel = NDIS_TEST_SEND_AT_DISPATCH_LEVEL(SendFlags);
-    
+
+    UNREFERENCED_PARAMETER(PortNumber);
+
     LogFuncEntryMsg(DRIVER_DATA_PATH, "Filter: %p, NBL: %p", FilterModuleContext, NetBufferLists);
-    
+
     // Try to grab a ref on the data path first, to make sure we are allowed
     if (!ExAcquireRundownProtection(&pFilter->DataPathRundown))
     {
@@ -231,8 +233,6 @@ Arguments:
             otLwfEventProcessingIndicateNewNetBufferLists(
                 pFilter,
                 DispatchLevel,
-                FALSE,
-                PortNumber,
                 NetBufferLists
                 );
         }
@@ -600,7 +600,7 @@ error:
     otFreeMessage(aMessage);
 }
 
-// Called in response to receiving a spinel packet command
+// Called in response to receiving a Spinel Ip6 packet command
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void 
 otLwfTunReceiveIp6Packet(
