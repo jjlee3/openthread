@@ -164,6 +164,7 @@ Interpreter::Interpreter():
 Interpreter::Interpreter(otInstance * aInstance):
 #endif
 #ifndef OTDLL
+    sServer(NULL),
     sLength(8),
     sCount(1),
     sInterval(1000),
@@ -202,6 +203,7 @@ Interpreter::Interpreter(otInstance * aInstance):
     }
 
 #else
+    memset(mSlaacAddresses, 0, sizeof(mSlaacAddresses));
     mInstance->mIp6.mIcmp.SetEchoReplyHandler(&s_HandleEchoResponse, this);
     otSetStateChangedCallback(mInstance, &Interpreter::s_HandleNetifStateChanged, this);
 #endif

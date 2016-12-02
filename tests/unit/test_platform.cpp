@@ -49,6 +49,7 @@ testPlatAlarmGetNow             g_testPlatAlarmGetNow = NULL;
 otRadioCaps                     g_testPlatRadioCaps = kRadioCapsNone;
 testPlatRadioSetPanId           g_testPlatRadioSetPanId = NULL;
 testPlatRadioSetExtendedAddress g_testPlatRadioSetExtendedAddress = NULL;
+testPlatRadioSetCallbacks       g_testPlatRadioSetCallbacks = NULL;
 testPlatRadioEnable             g_testPlatRadioEnable = NULL;
 testPlatRadioDisable            g_testPlatRadioDisable = NULL;
 testPlatRadioSetShortAddress    g_testPlatRadioSetShortAddress = NULL;
@@ -68,6 +69,7 @@ void testPlatResetToDefaults(void)
     g_testPlatRadioSetPanId = NULL;
     g_testPlatRadioSetExtendedAddress = NULL;
     g_testPlatRadioSetShortAddress = NULL;
+    g_testPlatRadioSetCallbacks = NULL;
     g_testPlatRadioEnable = NULL;
     g_testPlatRadioDisable = NULL;
     g_testPlatRadioReceive = NULL;
@@ -160,6 +162,15 @@ extern "C" {
 
     void otPlatRadioSetPromiscuous(otInstance *, bool)
     {
+    }
+
+    void otPlatRadioSetCallbacks(otInstance *aInstance, otPlatRadioReceiveDone receiveCallback,
+                                 otPlatRadioTransmitDone transmitCallback)
+    {
+        if (g_testPlatRadioSetCallbacks)
+        {
+            return g_testPlatRadioSetCallbacks(aInstance, receiveCallback, transmitCallback);
+        }
     }
 
     ThreadError otPlatRadioEnable(otInstance *aInstance)

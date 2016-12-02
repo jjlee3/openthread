@@ -239,6 +239,16 @@ void otPlatRadioSetPromiscuous(_In_ otInstance *otCtx, int aEnable)
     }
 }
 
+void otPlatRadioSetCallbacks(_In_ otInstance *otCtx, _In_ otPlatRadioReceiveDone receiveCallback,
+                             _In_ otPlatRadioTransmitDone transmitCallback)
+{
+    NT_ASSERT(otCtx);
+    PMS_FILTER pFilter = otCtxToFilter(otCtx);
+
+    pFilter->otReceiveDoneCallback = receiveCallback;
+    pFilter->otTransmitDoneCallback = transmitCallback;
+}
+
 ThreadError otPlatRadioEnable(_In_ otInstance *otCtx)
 {
     NT_ASSERT(otCtx);
@@ -432,7 +442,8 @@ otLwfRadioReceiveFrame(
     NT_ASSERT(pFilter->otPhyState > kStateDisabled);
     if (pFilter->otPhyState > kStateDisabled)
     {
-        otPlatRadioReceiveDone(pFilter->otCtx, &pFilter->otReceiveFrame, kThreadError_None);
+        NT_ASSERT(pFilter->otReceiveDoneCallback);
+        pFilter->otReceiveDoneCallback(pFilter->otCtx, &pFilter->otReceiveFrame, kThreadError_None);
     }
     else
     {
@@ -489,6 +500,7 @@ otLwfRadioTransmitFrameDone(
     pFilter->SendPending = FALSE;
     
     NT_ASSERT(pFilter->otPhyState == kStateTransmit);
+    NT_ASSERT(pFilter->otTransmitDoneCallback);
 
     // Now that we are completing a send, fall back to receive state and set the event
     pFilter->otPhyState = kStateReceive;
@@ -497,19 +509,19 @@ otLwfRadioTransmitFrameDone(
 
     if (STATUS_SUCCESS == Status)
     {
-        otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, FramePending, kThreadError_None);
+        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, FramePending, kThreadError_None);
     }
     else if (STATUS_DEVICE_BUSY == Status)
     {
-        otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_ChannelAccessFailure);
+        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_ChannelAccessFailure);
     }
     else if (STATUS_TIMEOUT == Status)
     {
-        otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_NoAck);
+        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_NoAck);
     }
     else
     {
-        otPlatRadioTransmitDone(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_Abort);
+        pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, false, kThreadError_Abort);
     }
 
     LogFuncExit(DRIVER_DATA_PATH);

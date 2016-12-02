@@ -36,6 +36,15 @@ uint8_t g_RecvChannel = 0;
 uint8_t g_TransmitPsdu[128];
 RadioPacket g_TransmitRadioPacket;
 bool g_fTransmit = false;
+otPlatRadioReceiveDone g_ReceiveDoneCallback = NULL;
+otPlatRadioTransmitDone g_TransmitDoneCallback = NULL;
+
+void testFuzzRadioSetCallbacks(otInstance *, otPlatRadioReceiveDone receiveCallback,
+                               otPlatRadioTransmitDone transmitCallback)
+{
+    g_ReceiveDoneCallback = receiveCallback;
+    g_TransmitDoneCallback = transmitCallback;
+}
 
 ThreadError testFuzzRadioEnable(otInstance *)
 {
@@ -85,6 +94,7 @@ void TestFuzz(uint32_t aSeconds)
 
     // Set the platform function pointers
     g_TransmitRadioPacket.mPsdu = g_TransmitPsdu;
+    g_testPlatRadioSetCallbacks = testFuzzRadioSetCallbacks;
     g_testPlatRadioEnable = testFuzzRadioEnable;
     g_testPlatRadioDisable = testFuzzRadioDisable;
     g_testPlatRadioReceive = testFuzzRadioReceive;
@@ -145,7 +155,7 @@ void TestFuzz(uint32_t aSeconds)
             if (g_fTransmit)
             {
                 g_fTransmit = false;
-                otPlatRadioTransmitDone(aInstance, &g_TransmitRadioPacket, true, kThreadError_None);
+                g_TransmitDoneCallback(aInstance, &g_TransmitRadioPacket, true, kThreadError_None);
 #ifdef DBG_FUZZ
                 Log("<== transmit");
 #endif
@@ -172,7 +182,7 @@ void TestFuzz(uint32_t aSeconds)
                 g_RecvChannel = 0;
 
                 // Indicate the receive complete
-                otPlatRadioReceiveDone(aInstance, &fuzzPacket, kThreadError_None);
+                g_ReceiveDoneCallback(aInstance, &fuzzPacket, kThreadError_None);
 
                 countRecv++;
 #ifdef DBG_FUZZ

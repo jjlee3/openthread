@@ -160,7 +160,11 @@ Mac::Mac(ThreadNetif &aThreadNetif):
 
     mPcapCallback = NULL;
     mPcapCallbackContext = NULL;
+}
 
+void Mac::PrepareRadio()
+{
+    otPlatRadioSetCallbacks(mNetif.GetInstance(), ReceiveDoneTask, TransmitDoneTask);
     otPlatRadioEnable(mNetif.GetInstance());
     mTxFrame = static_cast<Frame *>(otPlatRadioGetTransmitBuffer(mNetif.GetInstance()));
 }
@@ -790,8 +794,7 @@ exit:
     }
 }
 
-extern "C" void otPlatRadioTransmitDone(otInstance *aInstance, RadioPacket *aPacket, bool aRxPending,
-                                        ThreadError aError)
+void Mac::TransmitDoneTask(otInstance *aInstance, RadioPacket *aPacket, bool aRxPending, ThreadError aError)
 {
     otLogFuncEntryMsg("%!otError!, aRxPending=%u", aError, aRxPending ? 1 : 0);
 
@@ -1164,7 +1167,7 @@ exit:
     return error;
 }
 
-extern "C" void otPlatRadioReceiveDone(otInstance *aInstance, RadioPacket *aFrame, ThreadError aError)
+void Mac::ReceiveDoneTask(otInstance *aInstance, RadioPacket *aFrame, ThreadError aError)
 {
     otLogFuncEntryMsg("%!otError!", aError);
     aInstance->mThreadNetif.GetMac().ReceiveDoneTask(static_cast<Frame *>(aFrame), aError);
