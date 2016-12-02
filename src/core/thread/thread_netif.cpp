@@ -74,6 +74,7 @@ ThreadNetif::ThreadNetif(Ip6::Ip6 &aIp6):
     mNetworkDataLocal(*this),
     mNetworkDataLeader(*this),
     mNetworkDiagnostic(*this),
+    mIsUp(false),
 #if OPENTHREAD_ENABLE_COMMISSIONER
     mSecureCoapServer(*this, OPENTHREAD_CONFIG_JOINER_UDP_PORT),
     mCommissioner(*this),
@@ -93,7 +94,6 @@ ThreadNetif::ThreadNetif(Ip6::Ip6 &aIp6):
     mAnnounceBegin(*this),
     mPanIdQuery(*this),
     mEnergyScan(*this)
-
 {
     mKeyManager.SetMasterKey(kThreadMasterKey, sizeof(kThreadMasterKey));
 }

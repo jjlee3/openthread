@@ -112,6 +112,18 @@ otLwfInitializeThreadMode(
             break;
         }
 
+        // Query the interface state
+        BOOLEAN IfUp = FALSE;
+        Status = otLwfCmdGetProp(pFilter, NULL, SPINEL_PROP_NET_IF_UP, SPINEL_DATATYPE_BOOL_S, &IfUp);
+        if (!NT_SUCCESS(Status))
+        {
+            LogError(DRIVER_DEFAULT, "Failed to query SPINEL_PROP_INTERFACE_TYPE, %!STATUS!", Status);
+        }
+        else
+        {
+            NT_ASSERT(IfUp == FALSE);
+        }
+
         // Indicate binding to the Radio layer on the device
         Status =
             otLwfCmdSetProp(

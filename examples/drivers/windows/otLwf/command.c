@@ -852,7 +852,9 @@ otLwfGetPropHandler(
         }
         else
         {
-            CmdContext->Status = ThreadErrorToNtstatus(SpinelStatusToThreadError(spinel_status));
+            ThreadError errorCode = SpinelStatusToThreadError(spinel_status);
+            LogVerbose(DRIVER_DEFAULT, "Get key=%u failed with %!otError!", CmdContext->Key, errorCode);
+            CmdContext->Status = ThreadErrorToNtstatus(errorCode);
         }
     }
     else if (Key == CmdContext->Key)
@@ -1008,7 +1010,9 @@ otLwfSetPropHandler(
         }
         else
         {
-            CmdContext->Status = ThreadErrorToNtstatus(SpinelStatusToThreadError(spinel_status));
+            ThreadError errorCode = SpinelStatusToThreadError(spinel_status);
+            LogVerbose(DRIVER_DEFAULT, "Set key=%u failed with %!otError!", CmdContext->Key, errorCode);
+            CmdContext->Status = ThreadErrorToNtstatus(errorCode);
         }
     }
     else if (Key == CmdContext->Key)
@@ -1054,7 +1058,7 @@ otLwfCmdSetProp(
     status = 
         otLwfCmdSendAsyncV(
             pFilter, 
-            otLwfGetPropHandler, 
+            otLwfSetPropHandler, 
             &Context, 
             &tid,
             SPINEL_CMD_PROP_VALUE_SET, 

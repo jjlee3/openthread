@@ -126,7 +126,7 @@ otLwfRadioInit(
     LogFuncEntry(DRIVER_DEFAULT);
 
     NT_ASSERT(pFilter->DeviceStatus == OTLWF_DEVICE_STATUS_RADIO_MODE);
-    NT_ASSERT((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_SLEEP) != 0);
+    //NT_ASSERT((pFilter->DeviceCapabilities & OTLWF_DEVICE_CAP_RADIO_SLEEP) != 0);
 
     // Initialize the OpenThread radio capability flags
     pFilter->otRadioCapabilities = 0;
