@@ -72,7 +72,7 @@ otPlatReset(
             0,
             NULL
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Send SPINEL_CMD_RESET failed, %!STATUS!", status);
     }
@@ -107,7 +107,7 @@ otLwfRadioGetFactoryAddress(
             SPINEL_DATATYPE_EUI64_S,
             &hwAddress
         );
-    if (NT_SUCCESS(status) || hwAddress == NULL)
+    if (!NT_SUCCESS(status) || hwAddress == NULL)
     {
         LogError(DRIVER_DEFAULT, "Get SPINEL_PROP_HWADDR failed, %!STATUS!", status);
         return;
@@ -181,7 +181,7 @@ void otPlatRadioSetPanId(_In_ otInstance *otCtx, uint16_t panid)
             SPINEL_DATATYPE_UINT16_S,
             panid
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_PANID failed, %!STATUS!", status);
     }
@@ -205,7 +205,7 @@ void otPlatRadioSetExtendedAddress(_In_ otInstance *otCtx, uint8_t *address)
             SPINEL_DATATYPE_EUI64_S,
             address
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_LADDR failed, %!STATUS!", status);
     }
@@ -229,7 +229,7 @@ void otPlatRadioSetShortAddress(_In_ otInstance *otCtx, uint16_t address)
             SPINEL_DATATYPE_UINT16_S,
             address
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_15_4_SADDR failed, %!STATUS!", status);
     }
@@ -251,7 +251,7 @@ void otPlatRadioSetPromiscuous(_In_ otInstance *otCtx, int aEnable)
             SPINEL_DATATYPE_UINT8_S,
             aEnable != 0 ? SPINEL_MAC_PROMISCUOUS_MODE_NETWORK : SPINEL_MAC_PROMISCUOUS_MODE_OFF
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_MAC_PROMISCUOUS_MODE failed, %!STATUS!", status);
     }
@@ -286,7 +286,7 @@ ThreadError otPlatRadioEnable(_In_ otInstance *otCtx)
             SPINEL_DATATYPE_BOOL_S,
             TRUE
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_ENABLED (true) failed, %!STATUS!", status);
     }
@@ -315,7 +315,7 @@ ThreadError otPlatRadioDisable(_In_ otInstance *otCtx)
             SPINEL_DATATYPE_BOOL_S,
             FALSE
         );
-    if (NT_SUCCESS(status))
+    if (!NT_SUCCESS(status))
     {
         LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_ENABLED (false) failed, %!STATUS!", status);
     }
@@ -423,7 +423,7 @@ ThreadError otPlatRadioReceive(_In_ otInstance *otCtx, uint8_t aChannel)
                 SPINEL_DATATYPE_UINT8_S,
                 aChannel
             );
-        if (NT_SUCCESS(status))
+        if (!NT_SUCCESS(status))
         {
             LogError(DRIVER_DEFAULT, "Set SPINEL_PROP_PHY_CHAN failed, %!STATUS!", status);
         }
@@ -552,6 +552,13 @@ otLwfRadioTransmitFrameDone(
     pFilter->otPhyState = kStateReceive;
     LogInfo(DRIVER_DEFAULT, "Filter %p PhyState = kStateReceive.", pFilter);
     KeSetEvent(&pFilter->EventWorkerThreadProcessNBLs, 0, FALSE);
+
+    if (pFilter->otLastTransmitError != kThreadError_None &&
+        pFilter->otLastTransmitError != kThreadError_ChannelAccessFailure &&
+        pFilter->otLastTransmitError != kThreadError_NoAck)
+    {
+        pFilter->otLastTransmitError = kThreadError_Abort;
+    }
 
     pFilter->otTransmitDoneCallback(pFilter->otCtx, &pFilter->otTransmitFrame, pFilter->otLastTransmitFramePending, pFilter->otLastTransmitError);
 

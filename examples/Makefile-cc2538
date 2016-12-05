@@ -45,6 +45,9 @@ configure_OPTIONS               = \
     --enable-cli                  \
     --enable-ncp                  \
     --enable-diag                 \
+    --enable-cli-logging          \
+    --enable-commissioner         \
+    --enable-joiner               \
     --with-examples=cc2538        \
     --with-platform-info=CC2538   \
     $(NULL)

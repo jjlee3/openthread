@@ -482,7 +482,7 @@ otLwfCompleteNBLs(
     NT_ASSERT(NetBufferLists);
 
     // Indicate the completion
-    NdisFReturnNetBufferLists(
+    NdisFSendNetBufferListsComplete(
         pFilter->FilterHandle,
         NetBufferLists,
         DispatchLevel ? NDIS_SEND_COMPLETE_FLAGS_DISPATCH_LEVEL : 0
@@ -852,7 +852,7 @@ otLwfEventWorkerThread(
         //
 
         if (status == STATUS_TIMEOUT || 
-            (pFilter->EventTimerState == OT_EVENT_TIMER_FIRED && status == STATUS_WAIT_0 + 2))
+            (pFilter->EventTimerState == OT_EVENT_TIMER_FIRED && status == STATUS_WAIT_0 + 3))
         {
             // Reset the wait timeout
             pFilter->NextAlarmTickCount.QuadPart = 0;

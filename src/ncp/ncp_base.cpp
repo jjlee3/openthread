@@ -3098,9 +3098,13 @@ ThreadError NcpBase::SetPropertyHandler_PHY_ENABLED(uint8_t header, spinel_prop_
         else
         {
             errorCode = otPlatRadioEnable(mInstance);
-            if (mBindingState == kNcpBoundToRadio)
+            if (errorCode == kThreadError_None)
             {
-                otPlatRadioReceive(mInstance, otPlatRadioGetChannel(mInstance));
+                errorCode = otPlatRadioReceive(mInstance, otGetChannel(mInstance));
+                if (errorCode != kThreadError_None)
+                {
+                    otPlatRadioDisable(mInstance);
+                }
             }
         }
     }
@@ -3557,7 +3561,7 @@ ThreadError NcpBase::SetPropertyHandler_STREAM_RAW(uint8_t header, spinel_prop_k
     }
     else
     {
-        errorCode = kThreadError_InvalidState;
+        errorCode = kThreadError_Busy;
     }
 
     if (errorCode == kThreadError_None)

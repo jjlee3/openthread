@@ -282,12 +282,19 @@ void NcpUart::HandleError(ThreadError aError, uint8_t *aBuf, uint16_t aBufLength
 #ifdef __cplusplus
 extern "C" {
 #endif
-void otCliLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, va_list aAp)
+void otCliLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, va_list args)
 {
     (void)aLogLevel;
     (void)aLogRegion;
     (void)aFormat;
-    (void)aAp;
+    (void)args;
+
+    char logString[256];
+    int charsWritten;
+    if ((charsWritten = vsnprintf(logString, sizeof(logString), aFormat, args)) > 0)
+    {
+        otNcpStreamWrite(0, reinterpret_cast<uint8_t*>(logString), charsWritten);
+    }
 }
 #ifdef __cplusplus
 }  // extern "C"
