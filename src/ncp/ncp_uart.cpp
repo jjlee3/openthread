@@ -286,13 +286,15 @@ void otCliLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat,
 {
     (void)aLogLevel;
     (void)aLogRegion;
-    (void)aFormat;
-    (void)args;
 
-    char logString[256];
+    char logString[128];
     int charsWritten;
     if ((charsWritten = vsnprintf(logString, sizeof(logString), aFormat, args)) > 0)
     {
+        if ((uint32_t)charsWritten > sizeof(logString) - 1) // truncated
+        {
+            charsWritten = sizeof(logString) - 1;
+        }
         otNcpStreamWrite(0, reinterpret_cast<uint8_t*>(logString), charsWritten);
     }
 }

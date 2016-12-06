@@ -968,7 +968,7 @@ otLwfEventWorkerThread(
                 // Just get the first item, if available
                 if (!IsListEmpty(&pFilter->MacFramesHead))
                 {
-                    PLIST_ENTRY Link = RemoveHeadList(&pFilter->NBLsHead);
+                    PLIST_ENTRY Link = RemoveHeadList(&pFilter->MacFramesHead);
                     Event = CONTAINING_RECORD(Link, OTLWF_MAC_FRAME_EVENT, Link);
                 }
 

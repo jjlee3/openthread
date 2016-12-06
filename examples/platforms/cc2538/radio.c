@@ -41,6 +41,7 @@
 #include <common/logging.hpp>
 #include <platform/radio.h>
 #include <platform/diag.h>
+#include <platform/logging.h>
 #include "platform-cc2538.h"
 
 enum
@@ -81,6 +82,8 @@ void enableReceiver(void)
 {
     if (!sIsReceiverEnabled)
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "Enabling receiver");
+
         // flush rxfifo
         HWREG(RFCORE_SFR_RFST) = RFCORE_SFR_RFST_INSTR_FLUSHRX;
         HWREG(RFCORE_SFR_RFST) = RFCORE_SFR_RFST_INSTR_FLUSHRX;
@@ -95,6 +98,8 @@ void disableReceiver(void)
 {
     if (sIsReceiverEnabled)
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "Disabling receiver");
+
         while (HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
         // flush rxfifo
@@ -122,6 +127,8 @@ void setChannel(uint8_t channel)
             disableReceiver();
             enabled = true;
         }
+
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "New Channel: %d", channel);
 
         HWREG(RFCORE_XREG_FREQCTRL) = 11 + (channel - 11) * 5;
         sChannel = channel;
@@ -161,6 +168,8 @@ uint16_t otPlatRadioGetPanId(otInstance *aInstance)
 void otPlatRadioSetPanId(otInstance *aInstance, uint16_t panid)
 {
     (void)aInstance;
+
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "New PANID: 0x%X", panid);
 
     HWREG(RFCORE_FFSM_PAN_ID0) = panid & 0xFF;
     HWREG(RFCORE_FFSM_PAN_ID1) = panid >> 8;
@@ -225,6 +234,8 @@ void cc2538RadioInit(void)
 
     // default: SRCMATCH.SRC_MATCH_EN(1), SRCMATCH.AUTOPEND(1),
     // SRCMATCH.PEND_DATAREQ_ONLY(1), RFCORE_XREG_FRMCTRL1_PENDING_OR(0)
+
+    otPlatLog(kLogLevelNone, kLogRegionPlat, "Radio Initialized");
 }
 
 bool otPlatRadioIsEnabled(otInstance *aInstance)
@@ -245,6 +256,7 @@ ThreadError otPlatRadioEnable(otInstance *aInstance)
 {
     if (!otPlatRadioIsEnabled(aInstance))
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "New radio state = kStateSleep");
         sState = kStateSleep;
     }
 
@@ -255,6 +267,7 @@ ThreadError otPlatRadioDisable(otInstance *aInstance)
 {
     if (otPlatRadioIsEnabled(aInstance))
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "New radio state = kStateDisabled");
         sState = kStateDisabled;
     }
 
@@ -268,6 +281,7 @@ ThreadError otPlatRadioSleep(otInstance *aInstance)
 
     if (sState == kStateSleep || sState == kStateReceive)
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "New radio state = kStateSleep");
         error = kThreadError_None;
         sState = kStateSleep;
         disableReceiver();
@@ -283,6 +297,8 @@ ThreadError otPlatRadioReceive(otInstance *aInstance, uint8_t aChannel)
 
     if (sState != kStateDisabled)
     {
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "New radio state = kStateReceive");
+
         error = kThreadError_None;
         sState = kStateReceive;
         setChannel(aChannel);

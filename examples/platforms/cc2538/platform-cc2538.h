@@ -37,6 +37,7 @@
 
 #include <stdint.h>
 #include <openthread-types.h>
+#include <platform/logging.h>
 
 #include "cc2538-reg.h"
 
@@ -82,5 +83,10 @@ void cc2538RandomInit(void);
  *
  */
 void cc2538UartProcess(void);
+
+#define cc2538LogCrit(aFormat, ...)  otPlatLog(kLogLevelCrit, kLogRegionPlat, aFormat, ## __VA_ARGS__)
+#define cc2538LogWarn(aFormat, ...)  otPlatLog(kLogLevelWarn, kLogRegionPlat, aFormat, ## __VA_ARGS__)
+#define cc2538LogInfo(aFormat, ...)  otPlatLog(kLogLevelInfo, kLogRegionPlat, aFormat, ## __VA_ARGS__)
+#define cc2538LogDebg(aFormat, ...)  otPlatLog(kLogLevelDebg, kLogRegionPlat, aFormat, ## __VA_ARGS__)
 
 #endif  // PLATFORM_CC2538_H_
