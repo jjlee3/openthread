@@ -322,6 +322,8 @@ ThreadError otPlatRadioTransmit(otInstance *aInstance, RadioPacket *aPacket)
         sState = kStateTransmit;
         sTransmitError = kThreadError_None;
 
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmitting %d bytes", aPacket->mLength);
+
         while (HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
         // flush txfifo
@@ -351,6 +353,8 @@ ThreadError otPlatRadioTransmit(otInstance *aInstance, RadioPacket *aPacket)
         HWREG(RFCORE_SFR_RFST) = RFCORE_SFR_RFST_INSTR_TXON;
 
         while (HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmitted %d bytes", aPacket->mLength);
     }
 
 exit:
@@ -453,6 +457,8 @@ void cc2538RadioProcess(otInstance *aInstance)
         if (((HWREG(RFCORE_XREG_FRMFILT0) & RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN) == 0) ||
             (sReceiveFrame.mLength > IEEE802154_ACK_LENGTH))
         {
+            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio received %d bytes", sReceiveFrame.mLength);
+
             if (sReceiveDoneCallback)
             {
                 sReceiveDoneCallback(aInstance, &sReceiveFrame, sReceiveError);
@@ -464,6 +470,7 @@ void cc2538RadioProcess(otInstance *aInstance)
     {
         if (sTransmitError != kThreadError_None || (sTransmitFrame.mPsdu[0] & IEEE802154_ACK_REQUEST) == 0)
         {
+            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete");
             sState = kStateReceive;
             sTransmitDoneCallback(aInstance, &sTransmitFrame, false, sTransmitError);
         }
@@ -471,13 +478,11 @@ void cc2538RadioProcess(otInstance *aInstance)
                  (sReceiveFrame.mPsdu[0] & IEEE802154_FRAME_TYPE_MASK) == IEEE802154_FRAME_TYPE_ACK &&
                  (sReceiveFrame.mPsdu[IEEE802154_DSN_OFFSET] == sTransmitFrame.mPsdu[IEEE802154_DSN_OFFSET]))
         {
+            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete with ACK received");
             sState = kStateReceive;
 
-            if (sTransmitDoneCallback)
-            {
-                sTransmitDoneCallback(aInstance, &sTransmitFrame, (sReceiveFrame.mPsdu[0] & IEEE802154_FRAME_PENDING) != 0,
-                                      sTransmitError);
-            }
+            sTransmitDoneCallback(aInstance, &sTransmitFrame, (sReceiveFrame.mPsdu[0] & IEEE802154_FRAME_PENDING) != 0,
+                                  sTransmitError);
         }
     }
 
