@@ -176,7 +176,10 @@ otLwfUninitializeThreadMode(
     otLwfEventProcessingStop(pFilter);
     
     // Free timer
-    ExDeleteTimer(pFilter->EventHighPrecisionTimer, TRUE, FALSE, NULL);
+    if (pFilter->EventHighPrecisionTimer)
+    {
+        ExDeleteTimer(pFilter->EventHighPrecisionTimer, TRUE, FALSE, NULL);
+    }
 
     LogFuncExit(DRIVER_DEFAULT);
 }
