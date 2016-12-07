@@ -39,6 +39,7 @@
 #include <common/code_utils.hpp>
 #include <platform/platform.h>
 #include <common/logging.hpp>
+#include <platform/alarm.h>
 #include <platform/radio.h>
 #include <platform/diag.h>
 #include <platform/logging.h>
@@ -63,6 +64,11 @@ enum
     CC2538_LQI_BIT_MASK = 0x7f,
 };
 
+enum
+{
+    kAckTimeout = 16 // In milliseconds
+};
+
 static RadioPacket sTransmitFrame;
 static RadioPacket sReceiveFrame;
 static ThreadError sTransmitError;
@@ -77,6 +83,9 @@ static bool sIsReceiverEnabled = false;
 
 static otPlatRadioReceiveDone sReceiveDoneCallback = NULL;
 static otPlatRadioTransmitDone sTransmitDoneCallback = NULL;
+
+static bool sIsWaitingForAck = false;
+static uint32_t sAckTimeout;
 
 void enableReceiver(void)
 {
@@ -355,6 +364,13 @@ ThreadError otPlatRadioTransmit(otInstance *aInstance, RadioPacket *aPacket)
         while (HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
         otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmitted %d bytes", aPacket->mLength);
+
+        // Check to see if we need to set ACK wait timeout
+        sIsWaitingForAck = (sTransmitFrame.mPsdu[0] & IEEE802154_ACK_REQUEST) != 0;
+        if (sIsWaitingForAck)
+        {
+            sAckTimeout = otPlatAlarmGetNow() + kAckTimeout;
+        }
     }
 
 exit:
@@ -376,7 +392,7 @@ int8_t otPlatRadioGetRssi(otInstance *aInstance)
 otRadioCaps otPlatRadioGetCaps(otInstance *aInstance)
 {
     (void)aInstance;
-    return kRadioCapsNone;
+    return kRadioCapsAckTimeout;
 }
 
 bool otPlatRadioGetPromiscuous(otInstance *aInstance)
@@ -468,7 +484,7 @@ void cc2538RadioProcess(otInstance *aInstance)
 
     if (sState == kStateTransmit)
     {
-        if (sTransmitError != kThreadError_None || (sTransmitFrame.mPsdu[0] & IEEE802154_ACK_REQUEST) == 0)
+        if (sTransmitError != kThreadError_None || !sIsWaitingForAck)
         {
             otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete (err=%d)", sTransmitError);
             sState = kStateReceive;
@@ -480,9 +496,23 @@ void cc2538RadioProcess(otInstance *aInstance)
         {
             otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete with ACK received");
             sState = kStateReceive;
+            sIsWaitingForAck = false;
 
             sTransmitDoneCallback(aInstance, &sTransmitFrame, (sReceiveFrame.mPsdu[0] & IEEE802154_FRAME_PENDING) != 0,
                                   sTransmitError);
+        }
+    }
+
+    if (sIsWaitingForAck)
+    {
+        // See if we have expired our wait time (accounting for wrap around)
+        if (sAckTimeout - otPlatAlarmGetNow() > kAckTimeout)
+        {
+            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit timed out waiting for ACK");
+            sState = kStateReceive;
+            sIsWaitingForAck = false;
+
+            sTransmitDoneCallback(aInstance, &sTransmitFrame, false, kThreadError_NoAck);
         }
     }
 
