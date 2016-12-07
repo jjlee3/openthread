@@ -571,13 +571,13 @@ otLwfThreadValueIs(
         {
             if (strnlen((char*)output, output_len) != output_len)
             {
-                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", (char*)output);
+                LogInfo(DRIVER_DEFAULT, "DEVICE: %s", (char*)output);
             }
             else if (output_len < 128)
             {
                 char strOutput[128] = { 0 };
                 memcpy(strOutput, output, output_len);
-                LogInfo(DRIVER_DEFAULT, "DEBUG_STREAM: %s", strOutput);
+                LogInfo(DRIVER_DEFAULT, "DEVICE: %s", strOutput);
             }
         }
     }

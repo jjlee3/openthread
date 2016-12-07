@@ -470,7 +470,7 @@ void cc2538RadioProcess(otInstance *aInstance)
     {
         if (sTransmitError != kThreadError_None || (sTransmitFrame.mPsdu[0] & IEEE802154_ACK_REQUEST) == 0)
         {
-            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete");
+            otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio transmit complete (err=%d)", sTransmitError);
             sState = kStateReceive;
             sTransmitDoneCallback(aInstance, &sTransmitFrame, false, sTransmitError);
         }

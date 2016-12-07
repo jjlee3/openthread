@@ -273,7 +273,8 @@ void otCliLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat,
         break;
 
     default:
-        return;
+        Uart::sUartServer->OutputFormat("???? ");
+        break;
     }
 
     switch (aLogRegion)
@@ -314,12 +315,21 @@ void otCliLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat,
         Uart::sUartServer->OutputFormat("NCP  ");
         break;
 
+    case kLogRegionNetDiag:
+        Uart::sUartServer->OutputFormat("NETD ");
+        break;
+
     case kLogRegionMeshCoP:
         Uart::sUartServer->OutputFormat("MCOP ");
         break;
 
+    case kLogRegionPlat:
+        Uart::sUartServer->OutputFormat("PLAT ");
+        break;
+
     default:
-        return;
+        Uart::sUartServer->OutputFormat("???? ");
+        break;
     }
 
     Uart::sUartServer->OutputFormatV(aFormat, aAp);
