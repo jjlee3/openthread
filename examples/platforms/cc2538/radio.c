@@ -199,7 +199,7 @@ void otPlatRadioSetExtendedAddress(otInstance *aInstance, uint8_t *address)
     (void)aInstance;
 
     otPlatLog(kLogLevelInfo, kLogRegionPlat, "New Extended Addr: %X%X%X%X%X%X%X%X",
-        address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7]);
+              address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7]);
 
     for (int i = 0; i < 8; i++)
     {
@@ -372,6 +372,7 @@ ThreadError otPlatRadioTransmit(otInstance *aInstance, RadioPacket *aPacket)
 
         // Check to see if we need to set ACK wait timeout
         sIsWaitingForAck = (sTransmitFrame.mPsdu[0] & IEEE802154_ACK_REQUEST) != 0;
+
         if (sIsWaitingForAck)
         {
             sAckTimeout = otPlatAlarmGetNow() + kAckTimeout;
