@@ -238,6 +238,9 @@ N.B.:  FILTER can use NdisRegisterDeviceEx to create a device, so the upper
             default:
                 break;
             }
+
+            // Assume the device supports ACK timeouts for now
+            pFilter->DeviceCapabilities |= OTLWF_DEVICE_CAP_RADIO_ACK_TIMEOUT; // TODO - Add Spinel CAP for this
         }
 
         // Query the compartment ID for this interface to use for the IP stack

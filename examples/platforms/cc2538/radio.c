@@ -198,6 +198,9 @@ void otPlatRadioSetExtendedAddress(otInstance *aInstance, uint8_t *address)
 {
     (void)aInstance;
 
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "New Extended Addr: %X%X%X%X%X%X%X%X",
+        address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7]);
+
     for (int i = 0; i < 8; i++)
     {
         ((volatile uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] = address[i];
@@ -214,6 +217,8 @@ uint16_t otPlatRadioGetShortAddress(otInstance *aInstance)
 void otPlatRadioSetShortAddress(otInstance *aInstance, uint16_t address)
 {
     (void)aInstance;
+
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "New Short Addr: %X", address);
 
     HWREG(RFCORE_FFSM_SHORT_ADDR0) = address & 0xFF;
     HWREG(RFCORE_FFSM_SHORT_ADDR1) = address >> 8;
@@ -405,6 +410,8 @@ void otPlatRadioSetPromiscuous(otInstance *aInstance, bool aEnable)
 {
     (void)aInstance;
 
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "New Promiscuous mode: %d", aEnable ? 1 : 0);
+
     if (aEnable)
     {
         HWREG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
@@ -428,6 +435,8 @@ void readFrame(void)
     length = HWREG(RFCORE_SFR_RFDATA);
     VerifyOrExit(IEEE802154_MIN_LENGTH <= length && length <= IEEE802154_MAX_LENGTH, ;);
 
+    otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio has %d bytes available", length);
+
     // read psdu
     for (i = 0; i < length - 2; i++)
     {
@@ -447,6 +456,8 @@ void readFrame(void)
         // resets rxfifo
         HWREG(RFCORE_SFR_RFST) = RFCORE_SFR_RFST_INSTR_FLUSHRX;
         HWREG(RFCORE_SFR_RFST) = RFCORE_SFR_RFST_INSTR_FLUSHRX;
+
+        otPlatLog(kLogLevelDebg, kLogRegionPlat, "Radio dropping %d bytes because of invalid CRC", length);
     }
 
     // check for rxfifo overflow
@@ -687,6 +698,8 @@ void otPlatRadioEnableSrcMatch(otInstance *aInstance, bool aEnable)
 {
     (void)aInstance;
 
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "Update Enable Src Match: %d", aEnable ? 1 : 0);
+
     if (aEnable)
     {
         // only set FramePending when ack for data poll if there are queued messages
@@ -786,6 +799,8 @@ void otPlatRadioClearSrcMatchShortEntries(otInstance *aInstance)
     uint32_t *addrAutoPendEn = (uint32_t *)RFCORE_FFSM_SRCSHORTPENDEN0;
     (void)aInstance;
 
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "Clear Src Match Short Entries");
+
     for (uint8_t i = 0; i < RFCORE_XREG_SRCMATCH_ENABLE_STATUS_SIZE; i++)
     {
         HWREG(addrEn++) = 0;
@@ -798,6 +813,8 @@ void otPlatRadioClearSrcMatchExtEntries(otInstance *aInstance)
     uint32_t *addrEn = (uint32_t *)RFCORE_XREG_SRCEXTEN0;
     uint32_t *addrAutoPendEn = (uint32_t *)RFCORE_FFSM_SRCEXTPENDEN0;
     (void)aInstance;
+
+    otPlatLog(kLogLevelInfo, kLogRegionPlat, "Clear Src Match Ext Entries");
 
     for (uint8_t i = 0; i < RFCORE_XREG_SRCMATCH_ENABLE_STATUS_SIZE; i++)
     {

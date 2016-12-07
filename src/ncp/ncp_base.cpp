@@ -481,6 +481,7 @@ NcpBase::NcpBase(otInstance *aInstance):
     mIsRawStreamEnabled(false),
     mBindingState(kNcpBoundToThread),
     mCurTransmintTID(0),
+    mCurReceiveChannel(11),
 
     mFramingErrorCounter(0),
     mRxSpinelFrameCounter(0),
@@ -666,6 +667,8 @@ void NcpBase::HandleRadioTransmit(const RadioPacket *aPacket, bool aFramePending
         // Clear cached transmit TID
         mCurTransmintTID = 0;
     }
+
+    otPlatRadioReceive(mInstance, mCurReceiveChannel);
 
     (void)aPacket;
 }
@@ -3100,7 +3103,8 @@ ThreadError NcpBase::SetPropertyHandler_PHY_ENABLED(uint8_t header, spinel_prop_
             errorCode = otPlatRadioEnable(mInstance);
             if (errorCode == kThreadError_None)
             {
-                errorCode = otPlatRadioReceive(mInstance, otGetChannel(mInstance));
+                mCurReceiveChannel = otGetChannel(mInstance);
+                errorCode = otPlatRadioReceive(mInstance, mCurReceiveChannel);
                 if (errorCode != kThreadError_None)
                 {
                     otPlatRadioDisable(mInstance);
@@ -3156,9 +3160,10 @@ ThreadError NcpBase::SetPropertyHandler_PHY_CHAN(uint8_t header, spinel_prop_key
 
         if (errorCode == kThreadError_None)
         {
+            mCurReceiveChannel = static_cast<uint8_t>(i);
             if (mBindingState == kNcpBoundToRadio)
             {
-                otPlatRadioReceive(mInstance, static_cast<uint8_t>(i));
+                otPlatRadioReceive(mInstance, mCurReceiveChannel);
             }
             errorCode = HandleCommandPropertyGet(header, key);
         }
@@ -3534,8 +3539,9 @@ ThreadError NcpBase::SetPropertyHandler_STREAM_RAW(uint8_t header, spinel_prop_k
 {
     spinel_ssize_t parsedLength(0);
     ThreadError errorCode = kThreadError_None;
-    RadioPacket packet;
+    uint8_t *frame_buffer = NULL;
     unsigned int frame_len(0);
+    RadioPacket *packet = otPlatRadioGetTransmitBuffer(mInstance);
 
     if (mBindingState == kNcpBoundToRadio)
     {
@@ -3543,10 +3549,10 @@ ThreadError NcpBase::SetPropertyHandler_STREAM_RAW(uint8_t header, spinel_prop_k
             value_ptr,
             value_len,
             "DCc",
-            &packet.mPsdu,
+            &frame_buffer,
             &frame_len,
-            &packet.mChannel,
-            &packet.mPower
+            &packet->mChannel,
+            &packet->mPower
         );
 
         if (parsedLength > 0 && frame_len <= kMaxPHYPacketSize)
@@ -3554,9 +3560,13 @@ ThreadError NcpBase::SetPropertyHandler_STREAM_RAW(uint8_t header, spinel_prop_k
             // Cache the transaction ID for async response
             mCurTransmintTID = SPINEL_HEADER_GET_TID(header);
 
-            // Update packet length and send to the radio layer
-            packet.mLength = static_cast<uint8_t>(frame_len);
-            errorCode = otPlatRadioTransmit(mInstance, &packet);
+            // Copy data into packet
+            packet->mLength = static_cast<uint8_t>(frame_len);
+            memcpy(packet->mPsdu, frame_buffer, frame_len);
+
+            // Indicate transmit to radio layer
+            otPlatRadioReceive(mInstance, packet->mChannel);
+            errorCode = otPlatRadioTransmit(mInstance, packet);
         }
         else
         {

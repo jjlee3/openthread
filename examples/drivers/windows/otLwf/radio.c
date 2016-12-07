@@ -192,10 +192,16 @@ void otPlatRadioSetExtendedAddress(_In_ otInstance *otCtx, uint8_t *address)
     NT_ASSERT(otCtx);
     PMS_FILTER pFilter = otCtxToFilter(otCtx);
     NTSTATUS status;
+    spinel_eui64_t extAddr;
 
     LogInfo(DRIVER_DEFAULT, "Interface %!GUID! set Extended Mac Address: %llX", &pFilter->InterfaceGuid, *(ULONGLONG*)address);
 
     pFilter->otExtendedAddress = *(ULONGLONG*)address;
+
+    for (size_t i = 0; i < OT_EXT_ADDRESS_SIZE; i++)
+    {
+        extAddr.bytes[i] = address[7 - i];
+    }
 
     // Indicate to the miniport
     status =
@@ -203,7 +209,7 @@ void otPlatRadioSetExtendedAddress(_In_ otInstance *otCtx, uint8_t *address)
             pFilter,
             SPINEL_PROP_MAC_15_4_LADDR,
             SPINEL_DATATYPE_EUI64_S,
-            address
+            &extAddr
         );
     if (!NT_SUCCESS(status))
     {
