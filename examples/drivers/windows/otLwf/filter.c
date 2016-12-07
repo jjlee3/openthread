@@ -97,6 +97,11 @@ N.B.:  FILTER can use NdisRegisterDeviceEx to create a device, so the upper
     const uint8_t*          SpinelCapsPtr = NULL;
     spinel_size_t           SpinelCapsLen = 0;
     COMPARTMENT_ID          OriginalCompartmentID;
+    OBJECT_ATTRIBUTES       ObjectAttributes = {0};
+
+    const ULONG RegKeyOffset = ARRAYSIZE(L"\\REGISTRY\\MACHINE\\SYSTEM\\CurrentControlSet\\Services\\otlwf\\Parameters\\NdisAdapters\\") - 1;
+    DECLARE_CONST_UNICODE_STRING(RegKeyPath, L"\\REGISTRY\\MACHINE\\SYSTEM\\CurrentControlSet\\Services\\otlwf\\Parameters\\NdisAdapters\\{00000000-0000-0000-0000-000000000000}");
+    RtlCopyMemory(RegKeyPath.Buffer + RegKeyOffset, AttachParameters->BaseMiniportName->Buffer + 8, sizeof(L"{00000000-0000-0000-0000-000000000000}"));
 
     LogFuncEntry(DRIVER_DEFAULT);
 
@@ -130,6 +135,24 @@ N.B.:  FILTER can use NdisRegisterDeviceEx to create a device, so the upper
         }
 
         NdisZeroMemory(pFilter, sizeof(MS_FILTER));
+
+        LogVerbose(DRIVER_DEFAULT, "Opening interface registry key %S", RegKeyPath.Buffer);
+
+        InitializeObjectAttributes(
+            &ObjectAttributes,
+            (PUNICODE_STRING)&RegKeyPath,
+            OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+            NULL,
+            NULL);
+
+        // Open the registry key
+        NtStatus = ZwOpenKey(&pFilter->InterfaceRegKey, KEY_ALL_ACCESS, &ObjectAttributes);
+        if (!NT_SUCCESS(NtStatus))
+        {
+            LogError(DRIVER_DEFAULT, "ZwOpenKey failed to open %S, %!STATUS!", RegKeyPath.Buffer, NtStatus);
+            Status = NDIS_STATUS_FAILURE;
+            break;
+        }
 
         // Format of "\DEVICE\{5BA90C49-0D7E-455B-8D3B-614F6714A212}"
         AttachParameters->BaseMiniportName->Buffer += 8;
@@ -350,6 +373,13 @@ NOTE: Called at PASSIVE_LEVEL and the filter is in paused state
     // Clean up the Spinel command processing
     otLwfCmdUninitialize(pFilter);
 
+    // Close the registry key
+    if (pFilter->InterfaceRegKey)
+    {
+        ZwClose(pFilter->InterfaceRegKey);
+        pFilter->InterfaceRegKey = NULL;
+    }
+
     // Free the memory allocated
     NdisFreeMemory(pFilter, 0, 0);
 
@@ -374,6 +404,74 @@ otLwfNotifyDeviceAvailabilityChange(
 
         otLwfIndicateNotification(NotifEntry);
     }
+}
+
+PAGED
+NTSTATUS
+GetRegDWORDValue(
+    _In_  PMS_FILTER        pFilter,
+    _In_  PCWSTR            ValueName,
+    _Out_ PULONG            ValueData
+)
+{
+    NTSTATUS            status;
+    ULONG               resultLength;
+    UCHAR               keybuf[128] = {0};
+    UNICODE_STRING      UValueName;
+
+    PAGED_CODE();
+
+    RtlInitUnicodeString(&UValueName, ValueName);
+
+    status = ZwQueryValueKey(
+        pFilter->InterfaceRegKey,
+        &UValueName,
+        KeyValueFullInformation,
+        keybuf,
+        sizeof(keybuf),
+        &resultLength);
+
+    if (NT_SUCCESS(status)) 
+    {
+        PKEY_VALUE_FULL_INFORMATION keyInfo = (PKEY_VALUE_FULL_INFORMATION)keybuf;
+
+        if (keyInfo->Type != REG_DWORD)
+        {
+            status = STATUS_INVALID_PARAMETER_MIX;
+        }
+        else
+        {
+            *ValueData = *((ULONG UNALIGNED *)(keybuf + keyInfo->DataOffset));
+        }
+    }
+
+    return status;
+}
+
+PAGED
+NTSTATUS
+SetRegDWORDValue(
+    _In_ PMS_FILTER     pFilter,
+    _In_ PCWSTR         ValueName,
+    _In_ ULONG          ValueData
+)
+{
+    NTSTATUS            status;
+    UNICODE_STRING      UValueName;
+
+    PAGED_CODE();
+
+    RtlInitUnicodeString(&UValueName, ValueName);
+
+    status = ZwSetValueKey(
+        pFilter->InterfaceRegKey,
+        &UValueName,
+        0,
+        REG_DWORD,
+        (PVOID)&ValueData,
+        sizeof(ValueData));
+
+    return status;
 }
 
 _Use_decl_annotations_
@@ -406,7 +504,7 @@ Return Value:
     PMS_FILTER          pFilter = (PMS_FILTER)FilterModuleContext;
     NL_INTERFACE_KEY    key = {0};
     NL_INTERFACE_RW     interfaceRw;
-    BOOLEAN             ThreadOnHost = TRUE;
+    ULONG               ThreadOnHost = TRUE;
 
     PNDIS_RESTART_GENERAL_ATTRIBUTES NdisGeneralAttributes;
     PNDIS_RESTART_ATTRIBUTES         NdisRestartAttributes;
@@ -438,7 +536,14 @@ Return Value:
     }
 
     // Set the state indicating where we should be running the Thread logic (Host or Device).
-    ThreadOnHost = TRUE; // TODO - What logic should be here?
+    if (!NT_SUCCESS(GetRegDWORDValue(pFilter, L"RunOnHost", &ThreadOnHost)))
+    {
+        // Default to running on the host if the key isn't present
+        ThreadOnHost = TRUE;
+        SetRegDWORDValue(pFilter, L"RunOnHost", ThreadOnHost);
+    }
+
+    LogInfo(DRIVER_DEFAULT, "Filter: %p initializing ThreadOnHost=%d", FilterModuleContext, ThreadOnHost);
 
     // Initialize the processing logic
     if (ThreadOnHost)

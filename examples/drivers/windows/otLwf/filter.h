@@ -134,6 +134,7 @@ typedef struct _MS_FILTER
     NET_LUID                        InterfaceLuid;
     COMPARTMENT_ID                  InterfaceCompartmentID;
     NDIS_STRING                     InterfaceFriendlyName;
+    HANDLE                          InterfaceRegKey;
 
     //
     // Miniport Link State
