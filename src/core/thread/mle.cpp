@@ -256,7 +256,7 @@ ThreadError Mle::Stop(bool aClearNetworkDatasets)
     return kThreadError_None;
 }
 
-ThreadError Mle::Restore()
+ThreadError Mle::Restore(void)
 {
     ThreadError error = kThreadError_None;
     NetworkInfo networkInfo;
@@ -287,6 +287,7 @@ ThreadError Mle::Restore()
     else if (networkInfo.mDeviceState == kDeviceStateRouter || networkInfo.mDeviceState == kDeviceStateLeader)
     {
         mMleRouter.SetRouterId(GetRouterId(GetRloc16()));
+        mMleRouter.SetPreviousPartitionId(networkInfo.mPreviousPartitionId);
         mMleRouter.RestoreChildren();
     }
 
@@ -294,7 +295,7 @@ exit:
     return error;
 }
 
-ThreadError Mle::Store()
+ThreadError Mle::Store(void)
 {
     ThreadError error = kThreadError_None;
     NetworkInfo networkInfo;
@@ -315,6 +316,7 @@ ThreadError Mle::Store()
     networkInfo.mKeySequence = mKeyManager.GetCurrentKeySequence();
     networkInfo.mMleFrameCounter = mKeyManager.GetMleFrameCounter() + OPENTHREAD_CONFIG_STORE_FRAME_COUNTER_AHEAD;
     networkInfo.mMacFrameCounter = mKeyManager.GetMacFrameCounter() + OPENTHREAD_CONFIG_STORE_FRAME_COUNTER_AHEAD;
+    networkInfo.mPreviousPartitionId = mLeaderData.GetPartitionId();
     memcpy(networkInfo.mExtAddress.m8, mMac.GetExtAddress(), sizeof(networkInfo.mExtAddress));
 
     if (mDeviceState == kDeviceStateChild)
@@ -2035,6 +2037,7 @@ ThreadError Mle::HandleAdvertisement(const Message &aMessage, const Ip6::Message
     Neighbor *neighbor;
     SourceAddressTlv sourceAddress;
     LeaderDataTlv leaderData;
+    RouteTlv route;
     uint8_t tlvs[] = {Tlv::kNetworkData};
 
     // Source Address
@@ -2073,6 +2076,15 @@ ThreadError Mle::HandleAdvertisement(const Message &aMessage, const Ip6::Message
              leaderData.GetLeaderRouterId() != GetLeaderId()))
         {
             SetLeaderData(leaderData.GetPartitionId(), leaderData.GetWeighting(), leaderData.GetLeaderRouterId());
+
+            if ((mDeviceMode & ModeTlv::kModeFFD) &&
+                (Tlv::GetTlv(aMessage, Tlv::kRoute, sizeof(route), route) == kThreadError_None) &&
+                route.IsValid())
+            {
+                // Overwrite Route Data
+                mMleRouter.ProcessRouteTlv(route);
+            }
+
             mRetrieveNewNetworkData = true;
         }
 
@@ -2484,6 +2496,12 @@ ThreadError Mle::HandleChildIdResponse(const Message &aMessage, const Ip6::Messa
         }
     }
 
+    // clear local Pending Dataset if device succeed to reattach using stored Pending Dataset
+    if (mReattachState == kReattachPending)
+    {
+        mNetif.GetPendingDataset().GetLocal().Clear(true);
+    }
+
     // Pending Timestamp
     if (Tlv::GetTlv(aMessage, Tlv::kPendingTimestamp, sizeof(pendingTimestamp), pendingTimestamp) == kThreadError_None)
     {
@@ -2523,15 +2541,6 @@ ThreadError Mle::HandleChildIdResponse(const Message &aMessage, const Ip6::Messa
         mMesh.SetRxOnWhenIdle(true);
     }
 
-    mParent.mValid.mRloc16 = sourceAddress.GetRloc16();
-    SuccessOrExit(error = SetStateChild(shortAddress.GetRloc16()));
-
-    mNetworkData.SetNetworkData(leaderData.GetDataVersion(), leaderData.GetStableDataVersion(),
-                                (mDeviceMode & ModeTlv::kModeFullNetworkData) == 0,
-                                networkData.GetNetworkData(), networkData.GetLength());
-
-    mNetif.GetActiveDataset().ApplyConfiguration();
-
     // Route
     if ((Tlv::GetTlv(aMessage, Tlv::kRoute, sizeof(route), route) == kThreadError_None) &&
         (mDeviceMode & ModeTlv::kModeFFD))
@@ -2546,13 +2555,20 @@ ThreadError Mle::HandleChildIdResponse(const Message &aMessage, const Ip6::Messa
             }
         }
 
-        if (mRouterSelectionJitterTimeout == 0 &&
-            (mDeviceMode & ModeTlv::kModeFFD) &&
-            (numRouters < mMleRouter.GetRouterUpgradeThreshold()))
+        if (mRouterSelectionJitterTimeout == 0 && numRouters < mMleRouter.GetRouterUpgradeThreshold())
         {
             mRouterSelectionJitterTimeout = (otPlatRandomGet() % mRouterSelectionJitter) + 1;
         }
     }
+
+    mParent.mValid.mRloc16 = sourceAddress.GetRloc16();
+    SuccessOrExit(error = SetStateChild(shortAddress.GetRloc16()));
+
+    mNetworkData.SetNetworkData(leaderData.GetDataVersion(), leaderData.GetStableDataVersion(),
+                                (mDeviceMode & ModeTlv::kModeFullNetworkData) == 0,
+                                networkData.GetNetworkData(), networkData.GetLength());
+
+    mNetif.GetActiveDataset().ApplyConfiguration();
 
 exit:
 
