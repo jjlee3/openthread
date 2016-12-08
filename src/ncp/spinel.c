@@ -531,7 +531,7 @@ spinel_datatype_unpack(const uint8_t *data_ptr, spinel_size_t data_len, const ch
     return ret;
 }
 
-#
+
 spinel_ssize_t
 spinel_datatype_vunpack(const uint8_t *data_ptr, spinel_size_t data_len, const char *pack_format, va_list args)
 {
@@ -1214,6 +1214,22 @@ spinel_prop_key_to_cstr(spinel_prop_key_t prop_key)
 
     case SPINEL_PROP_JAM_DETECT_WINDOW:
         ret = "PROP_JAM_DETECT_WINDOW";
+        break;
+
+    case SPINEL_PROP_GPIO_CONFIG:
+        ret = "PROP_GPIO_CONFIG";
+        break;
+
+    case SPINEL_PROP_GPIO_STATE:
+        ret = "PROP_GPIO_STATE";
+        break;
+
+    case SPINEL_PROP_GPIO_STATE_SET:
+        ret = "PROP_GPIO_STATE_SET";
+        break;
+
+    case SPINEL_PROP_GPIO_STATE_CLEAR:
+        ret = "PROP_GPIO_STATE_CLEAR";
         break;
 
     default:

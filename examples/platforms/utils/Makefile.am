@@ -28,11 +28,19 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
-EXTRA_DIST              = \
-    OpenThread.py         \
-    OpenThread.png        \
-    deviceInputFields.xml \
-    README.md             \
+lib_LIBRARIES                           = libopenthread-platform-utils.a
+
+libopenthread_platform_utils_a_CPPFLAGS = \
+    -I$(top_srcdir)/include               \
+    -I$(top_srcdir)/src/core              \
+    $(NULL)
+
+libopenthread_platform_utils_a_SOURCES  = \
+    settings.cpp                          \
+    $(NULL)
+
+noinst_HEADERS                          = \
+    flash.h                               \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
