@@ -36,11 +36,6 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid>
-            <Grid.Background>
-                <ImageBrush ImageSource="ms-appx:///Assets/Wide310x150Logo.png" Opacity="0.25" Stretch="Uniform"/>
-            </Grid.Background>
-        </Grid>
         <!-- Interface List -->
         <TextBlock
             Text="Thread UX" 
@@ -49,13 +44,32 @@
             Margin="20" 
             FontSize="50"
             />
-        <TextBlock
-            Text="Interfaces" 
-            HorizontalAlignment="Left" 
-            VerticalAlignment="Top" 
-            Margin="60,90" 
-            FontSize="25"
-            />
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <TextBlock
+                Text="Interfaces" 
+                HorizontalAlignment="Left" 
+                Margin="60,90" 
+                FontSize="25"
+                />
+
+            <Button
+                x:Name="ThreadConnect"
+                Content="ThreadConnect"
+                Margin="10,0"/>
+            <Button
+                x:Name="Talk"
+                Content="Talk"
+                Margin="10,0"/>
+            <Border x:Name="StatusBorder" Margin="20,0,0,0" Visibility="Visible"
+                     VerticalAlignment="Center">
+                <TextBlock x:Name="StatusBlock"
+                           FontWeight="Bold"
+                           Text=" "
+                           Margin="10,10,10,10"
+                           FontSize="16"
+                           TextWrapping="NoWrap"/>
+            </Border>
+        </StackPanel>
         <ListView
             Name="InterfaceList"
             Margin="60,130,20,150"
