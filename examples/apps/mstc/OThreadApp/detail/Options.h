@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ws2ipdef.h>
+#include <mstcpip.h>
 #include <base/Exception.h>
 
 struct Options
@@ -11,8 +12,8 @@ struct Options
 
     void parse(int argc, char** argv);
 
-    static constexpr unsigned short DEF_LISTENER_PORT = 51000;
-    static constexpr unsigned short DEF_CLIENT_PORT   = 51100;
+    static constexpr unsigned short DEF_LISTENER_PORT = 51000; // 0xC738
+    static constexpr unsigned short DEF_CLIENT_PORT   = 51100; // 0xC79C
 
     sockaddr_in6   listenerAddr_ = { AF_INET6 };
     unsigned short listenerPort_ = DEF_LISTENER_PORT;

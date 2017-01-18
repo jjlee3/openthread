@@ -18,51 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\detail\Client.h" />
-    <ClInclude Include="..\detail\Clients.h" />
-    <ClInclude Include="..\detail\ClientService.h" />
-    <ClInclude Include="..\detail\Command.h" />
-    <ClInclude Include="..\detail\InterfaceActionMenu.h" />
-    <ClInclude Include="..\detail\InterfacesSelectMenu.h" />
-    <ClInclude Include="..\detail\IOThreadMgr.h" />
-    <ClInclude Include="..\detail\Listener.h" />
-    <ClInclude Include="..\detail\Log.h" />
-    <ClInclude Include="..\detail\Menu.h" />
-    <ClInclude Include="..\detail\MenuItem.h" />
-    <ClInclude Include="..\detail\NotifyFun.h" />
-    <ClInclude Include="..\detail\OThread.h" />
-    <ClInclude Include="..\detail\Options.h" />
-    <ClInclude Include="..\detail\OThreadMgr.h" />
-    <ClInclude Include="..\detail\pch.h" />
-    <ClInclude Include="..\detail\StdOutput.h" />
-    <ClInclude Include="..\detail\targetver.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\impl\Client.cpp" />
-    <ClCompile Include="..\impl\Clients.cpp" />
-    <ClCompile Include="..\impl\ClientService.cpp" />
-    <ClCompile Include="..\impl\InterfaceActionMenu.cpp" />
-    <ClCompile Include="..\impl\InterfacesSelectMenu.cpp" />
-    <ClCompile Include="..\impl\Listener.cpp" />
-    <ClCompile Include="..\impl\Log.cpp" />
-    <ClCompile Include="..\impl\MenuItem.cpp" />
-    <ClCompile Include="..\impl\OThread.cpp" />
-    <ClCompile Include="..\impl\Options.cpp" />
-    <ClCompile Include="..\impl\OThreadMgr.cpp" />
-    <ClCompile Include="..\impl\pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\impl\OThreadAppMain.cpp" />
-    <ClCompile Include="..\impl\StdOutput.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B37AF375-4179-4345-8338-408290895F70}</ProjectGuid>
+    <ProjectGuid>{EC1D0AD1-2A09-4510-8130-1AFCEB695363}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>OThreadApp</RootNamespace>
+    <RootNamespace>SocketApp</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,16 +86,16 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SOCK_TCP;OTDLL;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOCK_TCP;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..;../../OThreadApp;../../public</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>detail/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..;../../public;../../../../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;tcOtApi.lib;otApi.lib;ws2_32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(IntDir);../../../../../build/bin/$(PlatformTarget)/$(Configuration)/dll</AdditionalLibraryDirectories>
+      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;ws2_32.lib;ntdll.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IntDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -144,16 +103,16 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SOCK_TCP;OTDLL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOCK_TCP;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..;../../OThreadApp;../../public</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>detail/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..;../../public;../../../../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;tcOtApi.lib;otApi.lib;ws2_32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(IntDir);../../../../../build/bin/$(PlatformTarget)/$(Configuration)/dll</AdditionalLibraryDirectories>
+      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;ws2_32.lib;ntdll.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IntDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,18 +122,18 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SOCK_TCP;OTDLL;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOCK_TCP;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..;../../OThreadApp;../../public</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>detail/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..;../../public;../../../../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;tcOtApi.lib;otApi.lib;ws2_32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(IntDir);../../../../../build/bin/$(PlatformTarget)/$(Configuration)/dll</AdditionalLibraryDirectories>
+      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;ws2_32.lib;ntdll.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IntDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -184,20 +143,56 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SOCK_TCP;OTDLL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOCK_TCP;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..;../../OThreadApp;../../public</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>detail/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..;../../public;../../../../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;tcOtApi.lib;otApi.lib;ws2_32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(IntDir);../../../../../build/bin/$(PlatformTarget)/$(Configuration)/dll</AdditionalLibraryDirectories>
+      <AdditionalDependencies>base.lib;network.lib;tcKernel.lib;ws2_32.lib;ntdll.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IntDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\OThreadApp\detail\Client.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Clients.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\ClientService.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Command.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Listener.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Log.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Menu.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\MenuItem.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\Options.h" />
+    <ClInclude Include="..\..\OThreadApp\detail\StdOutput.h" />
+    <ClInclude Include="..\detail\IMenuMgr.h" />
+    <ClInclude Include="..\detail\MenuMgr.h" />
+    <ClInclude Include="..\detail\ModeMenu.h" />
+    <ClInclude Include="..\detail\pch.h" />
+    <ClInclude Include="..\detail\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\OThreadApp\impl\Client.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\Clients.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\ClientService.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\Listener.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\Log.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\MenuItem.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\Options.cpp" />
+    <ClCompile Include="..\..\OThreadApp\impl\StdOutput.cpp" />
+    <ClCompile Include="..\impl\Main.cpp" />
+    <ClCompile Include="..\impl\MenuMgr.cpp" />
+    <ClCompile Include="..\impl\ModeMenu.cpp" />
+    <ClCompile Include="..\impl\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

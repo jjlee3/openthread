@@ -4,7 +4,7 @@
 
 void
 Clients::join(
-    join_clinets&&              joinClients,
+    join_clients&&              joinClients,
     const notify_left_function& f)
 {
     for (auto& i : joinClients)

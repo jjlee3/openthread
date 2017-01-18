@@ -6,11 +6,11 @@
 #include <base/StringMacros.h>
 #include <base/Exception.h>
 #include <base/Scope.h>
+#include "detail/StdOutput.h"
 #include "detail/Log.h"
 #include "detail/Listener.h"
 #include "detail/Command.h"
 #include "detail/Options.h"
-#include "detail/StdOutput.h"
 
 Listener::~Listener()
 {
@@ -249,7 +249,7 @@ Listener::threadMain(
     try
     {
         sock_.closesocket();
-#ifdef OTHREAD_TCP
+#ifdef SOCK_TCP
         sock_.socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 #else
         sock_.socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -264,7 +264,7 @@ Listener::threadMain(
         namespace the_thread = std::this_thread;
         using milliseconds = std::chrono::milliseconds;
 
-#ifdef OTHREAD_TCP
+#ifdef SOCK_TCP
         sock_.listen(SOMAXCONN);
 
         for (; !stopping_; the_thread::sleep_for(milliseconds(msSleepTIME)),

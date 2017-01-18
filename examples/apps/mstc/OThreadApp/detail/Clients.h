@@ -12,10 +12,10 @@ class Clients
 {
 public:
     using socket_t     = mstc::network::Ipv6;
-    using join_clinets = std::vector<socket_t>;
+    using join_clients = std::vector<socket_t>;
     using left_clients = std::vector<SOCKET>;
 
-    void join(join_clinets&&, const notify_left_function&);
+    void join(join_clients&&, const notify_left_function&);
     void left(const left_clients&);
 
 protected:

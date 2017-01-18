@@ -2,9 +2,7 @@
 #include <limits>
 #include "detail/Options.h"
 
-static const char* listenerIP   = "listenerIP:";
 static const char* listenerPort = "listenerPort:";
-static const char* clientIP     = "clientIP:";
 static const char* clientPort   = "clientPort:";
 
 Options g_options;
@@ -24,45 +22,32 @@ Options::parse(
         auto arg = argv[i];
         if (*arg != '/' && *arg != '-') { continue; }
 
-        ++arg;
-        if (_strnicmp(arg, listenerIP, strlen(listenerIP)) == 0)
+        if (_strnicmp(arg, listenerPort, strlen(listenerPort)) == 0)
         {
-            const char* terminator = nullptr;
-            ::RtlIpv6StringToAddressA(arg + strlen(listenerIP),
-                &terminator, &listenerAddr_.sin6_addr);
-        }
-        else if (_strnicmp(arg, listenerPort, strlen(listenerPort)) == 0)
-        {
-            auto p = std::atoi(arg + strlen(listenerPort));
+            auto p = std::atoi(arg);
             if (p < 0)
             {
-                MSTC_THROW_EXCEPTION(PortFailure{"listener port"});
+                MSTC_THROW_EXCEPTION(PortFailure{});
             }
             else if (p > (std::numeric_limits<decltype(listenerPort_)>::max)())
             {
-                MSTC_THROW_EXCEPTION(PortFailure{"listener port"});
+                MSTC_THROW_EXCEPTION(PortFailure{});
             }
             else
             {
                 listenerPort_ = static_cast<decltype(listenerPort_)>(p);
             }
         }
-        else if (_strnicmp(arg, clientIP, strlen(clientIP)) == 0)
-        {
-            const char* terminator = nullptr;
-            ::RtlIpv6StringToAddressA(arg + strlen(clientIP),
-                &terminator, &clientAddr_.sin6_addr);
-        }
         else if (_strnicmp(arg, clientPort, strlen(clientPort)) == 0)
         {
-            auto p = std::atoi(arg + strlen(clientPort));
+            auto p = std::atoi(arg);
             if (p < 0)
             {
-                MSTC_THROW_EXCEPTION(PortFailure{"client port"});
+                MSTC_THROW_EXCEPTION(PortFailure{});
             }
             else if (p > (std::numeric_limits<decltype(clientPort_)>::max)())
             {
-                MSTC_THROW_EXCEPTION(PortFailure{"client port"});
+                MSTC_THROW_EXCEPTION(PortFailure{});
             }
             else
             {

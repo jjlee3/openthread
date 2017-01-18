@@ -14,7 +14,7 @@ public:
     using menu_csptr = menu_sptr;
 
     virtual void show() = 0;
-    virtual menu_csptr input(const std::string& inputline) = 0;
+    virtual menu_csptr input(const std::string& input) = 0;
 };
 
 class Menu : public IMenu

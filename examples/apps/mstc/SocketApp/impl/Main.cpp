@@ -2,19 +2,19 @@
 #include <iostream>
 #include <base/Scope.h>
 #include <network/Wsa.h>
-#include <tcOtApi/OtApiInstance.h>
 #include "detail/StdOutput.h"
 #include "detail/Log.h"
 #include "detail/Options.h"
-#include "detail/OThreadMgr.h"
+#include "detail/Menu.h"
+#include "detail/MenuMgr.h"
 #include "detail/Client.h"
-
-IOThreadMgr* g_ioThreadMgr = nullptr;
 
 void
 MainMode(
-    OThreadMgr& oThreadMgr)
+    MenuMgr& menuMgr)
 {
+    menuMgr.switchToMainMenu();
+
     std::string line;
 
     for (char ch, prvch; std::cin.get(ch);)
@@ -36,7 +36,6 @@ MainMode(
                 {
                     auto exit =
                         mstc::base::scope([&line]() { line.clear(); });
-                    oThreadMgr.switchToOThreadMenu();
                 }
                 break;
             case 13: // CR
@@ -44,7 +43,7 @@ MainMode(
                 {
                     auto exit =
                         mstc::base::scope([&line]() { line.clear(); });
-                    oThreadMgr.execute(line);
+                    menuMgr.execute(line);
                 }
                 break;
             case 10: // LF
@@ -52,7 +51,7 @@ MainMode(
                 {
                     auto exit =
                         mstc::base::scope([&line]() { line.clear(); });
-                    oThreadMgr.execute(line);
+                    menuMgr.execute(line);
                 }
                 break;
             default:
@@ -81,11 +80,11 @@ MainMode(
         }
         catch (Menu::Refresh&)
         {
-            oThreadMgr.refresh();
+            menuMgr.refresh();
         }
         catch (Menu::MainMenu&)
         {
-            oThreadMgr.switchToOThreadMenu();
+            menuMgr.switchToMainMenu();
         }
         catch (Menu::Failure& e)
         {
@@ -108,39 +107,36 @@ SwitchToClientMode()
     client.wait();
 }
 
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     g_log([](std::ostream& os)
     {
-        os << "OThread Application started" << std::endl;
+        os << "Socket Application started" << std::endl;
     });
 
     auto exit = mstc::base::scope([]
     {
         g_log([](std::ostream& os)
         {
-            os << "OThread Application ended" << std::endl;
+            os << "Socket Application ended" << std::endl;
         });
     });
 
     try
     {
-        mstc::network::Wsa     wsa;
-        mstc::ot::KApiInstance kApiInst;
-        OThreadMgr             oThreadMgr{kApiInst};
-        std::string            line;
+        mstc::network::Wsa wsa;
+        MenuMgr            menuMgr;
 
         g_options.parse(argc, argv);
-        oThreadMgr.init();
-        g_ioThreadMgr = &oThreadMgr;
+        g_menuMgr = &menuMgr;
 
         try
         {
-            MainMode(oThreadMgr);
+            MainMode(menuMgr);
         }
         catch (Menu::ClientMode&)
         {
-            oThreadMgr.unInit();
             SwitchToClientMode();
         }
     }
