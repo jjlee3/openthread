@@ -187,8 +187,6 @@ void MeshForwarder::UpdateIndirectMessages(void)
     Child *children;
     uint8_t numChildren;
 
-    VerifyOrExit(mSendBusy == false,);
-
     children = mMle.GetChildren(&numChildren);
 
     for (uint8_t i = 0; i < numChildren; i++)
@@ -209,6 +207,11 @@ void MeshForwarder::UpdateIndirectMessages(void)
 
             if (!message->IsChildPending())
             {
+                if (mSendMessage == message)
+                {
+                    mSendMessage = NULL;
+                }
+
                 mSendQueue.Dequeue(*message);
                 message->Free();
             }
@@ -217,9 +220,6 @@ void MeshForwarder::UpdateIndirectMessages(void)
         child->mQueuedIndirectMessageCnt = 0;
         ClearSrcMatchEntry(*child);
     }
-
-exit:
-    return;
 }
 
 void MeshForwarder::ScheduleTransmissionTask()
@@ -825,15 +825,42 @@ void MeshForwarder::HandlePollTimer(void *aContext)
 
 void MeshForwarder::HandlePollTimer()
 {
+    ThreadError error;
+
+    error = SendMacDataRequest();
+
+    if (error == kThreadError_NoBufs)
+    {
+        mPollTimer.Start(kDataRequstRetryDelay);
+    }
+}
+
+ThreadError MeshForwarder::SendMacDataRequest(void)
+{
+    ThreadError error;
     Message *message;
 
-    if ((message = mNetif.GetIp6().mMessagePool.New(Message::kTypeMacDataPoll, 0)) != NULL)
+    // only send MAC Data Requests in rx-off-when-idle mode
+    VerifyOrExit(!mMac.GetRxOnWhenIdle(), error = kThreadError_InvalidState);
+
+    // only enqueue one MAC Data Request at a time
+    for (message = mSendQueue.GetHead(); message; message = message->GetNext())
     {
-        SendMessage(*message);
-        otLogInfoMac("Sent poll");
+        VerifyOrExit(message->GetType() != Message::kTypeMacDataPoll, error = kThreadError_Already);
     }
 
+    // enqueue a MAC Data Request message
+    message = mNetif.GetIp6().mMessagePool.New(Message::kTypeMacDataPoll, 0);
+    VerifyOrExit(message != NULL, error = kThreadError_NoBufs);
+
+    SuccessOrExit(error = SendMessage(*message));
+    otLogInfoMac("Sent poll");
+
+    // restart the polling timer
     mPollTimer.Start(mPollPeriod);
+
+exit:
+    return error;
 }
 
 ThreadError MeshForwarder::GetMacSourceAddress(const Ip6::Address &aIp6Addr, Mac::Address &aMacAddr)
@@ -941,19 +968,19 @@ ThreadError MeshForwarder::HandleFrameRequest(Mac::Frame &aFrame)
         aFrame.SetFramePending(true);
     }
 
-#if 0
-    dump("sent frame", aFrame.GetHeader(), aFrame.GetLength());
-#endif
-
 exit:
     return error;
 }
 
 ThreadError MeshForwarder::SendPoll(Message &aMessage, Mac::Frame &aFrame)
 {
+    ThreadError error = kThreadError_None;
     Mac::Address macSource;
     uint16_t fcf;
     Neighbor *neighbor;
+
+    // only send MAC Data Requests in rx-off-when-idle mode
+    VerifyOrExit(!mMac.GetRxOnWhenIdle(), error = kThreadError_InvalidState);
 
     macSource.mShortAddress = mMac.GetShortAddress();
 
@@ -1002,7 +1029,8 @@ ThreadError MeshForwarder::SendPoll(Message &aMessage, Mac::Frame &aFrame)
 
     mMessageNextOffset = aMessage.GetLength();
 
-    return kThreadError_None;
+exit:
+    return error;
 }
 
 ThreadError MeshForwarder::SendMesh(Message &aMessage, Mac::Frame &aFrame)
@@ -1255,7 +1283,12 @@ void MeshForwarder::HandleSentFrame(Mac::Frame &aFrame, ThreadError aError)
     Neighbor *neighbor;
 
     mSendBusy = false;
-    VerifyOrExit(mSendMessage != NULL, ;);
+
+    if (mSendMessage == NULL)
+    {
+        mScheduleTransmissionTask.Post();
+        ExitNow();
+    }
 
     aFrame.GetDstAddr(macDest);
 
@@ -1416,10 +1449,6 @@ void MeshForwarder::HandleReceivedFrame(Mac::Frame &aFrame)
     Child *child = NULL;
     ThreadError error = kThreadError_None;
 
-#if 0
-    dump("received frame", aFrame.GetHeader(), aFrame.GetLength());
-#endif
-
     if (!mEnabled)
     {
         ExitNow(error = kThreadError_InvalidState);
@@ -1458,7 +1487,7 @@ void MeshForwarder::HandleReceivedFrame(Mac::Frame &aFrame)
         if (payloadLength >= sizeof(Lowpan::MeshHeader) &&
             reinterpret_cast<Lowpan::MeshHeader *>(payload)->IsMeshHeader())
         {
-            HandleMesh(payload, payloadLength, messageInfo);
+            HandleMesh(payload, payloadLength, macSource, messageInfo);
         }
         else if (payloadLength >= sizeof(Lowpan::FragmentHeader) &&
                  reinterpret_cast<Lowpan::FragmentHeader *>(payload)->IsFragmentHeader())
@@ -1492,7 +1521,8 @@ exit:
     }
 }
 
-void MeshForwarder::HandleMesh(uint8_t *aFrame, uint8_t aFrameLength, const ThreadMessageInfo &aMessageInfo)
+void MeshForwarder::HandleMesh(uint8_t *aFrame, uint8_t aFrameLength, const Mac::Address &aMacSource,
+                               const ThreadMessageInfo &aMessageInfo)
 {
     ThreadError error = kThreadError_None;
     Message *message = NULL;
@@ -1531,6 +1561,8 @@ void MeshForwarder::HandleMesh(uint8_t *aFrame, uint8_t aFrameLength, const Thre
     }
     else if (meshHeader.GetHopsLeft() > 0)
     {
+        mMle.ResolveRoutingLoops(aMacSource.mShortAddress, meshDest.mShortAddress);
+
         SuccessOrExit(error = CheckReachability(aFrame, aFrameLength, meshSource, meshDest));
 
         meshHeader.SetHopsLeft(meshHeader.GetHopsLeft() - 1);

@@ -28,59 +28,39 @@
 
 /**
  * @file
- *   This file implements common methods for manipulating Network Diagnostic TLVs.
+ * @brief
+ *   This file includes the platform abstraction for the Thread DHCPv6 server.
  */
 
-#include <common/code_utils.hpp>
-#include <common/message.hpp>
-#include <thread/network_diagnostic_tlvs.hpp>
+#ifndef OPENTHREAD_DHCP6_SERVER_H_
+#define OPENTHREAD_DHCP6_SERVER_H_
 
-namespace Thread {
-namespace NetworkDiagnostic {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-ThreadError NetworkDiagnosticTlv::GetTlv(const Message &aMessage, Type aType, uint16_t aMaxLength,
-                                         NetworkDiagnosticTlv &aTlv)
-{
-    ThreadError error = kThreadError_Parse;
-    uint16_t offset;
+/**
+ * @addtogroup core-dhcp6-server
+ *
+ * @{
+ *
+ */
 
-    SuccessOrExit(error = GetOffset(aMessage, aType, offset));
-    aMessage.Read(offset, sizeof(NetworkDiagnosticTlv), &aTlv);
+/**
+ * Update updates DHCP Agents and DHCP Alocs.
+ *
+ * @param[in]     aInstance      A pointer to an OpenThread instance.
+ *
+ */
+void otDhcp6ServerUpdate(otInstance *aInstance);
 
-    if (aMaxLength > sizeof(aTlv) + aTlv.GetLength())
-    {
-        aMaxLength = sizeof(aTlv) + aTlv.GetLength();
-    }
+/**
+ * @}
+ *
+ */
 
-    aMessage.Read(offset, aMaxLength, &aTlv);
+#ifdef __cplusplus
+}  // end of extern "C"
+#endif
 
-exit:
-    return error;
-}
-
-ThreadError NetworkDiagnosticTlv::GetOffset(const Message &aMessage, Type aType, uint16_t &aOffset)
-{
-    ThreadError error = kThreadError_Parse;
-    uint16_t offset = aMessage.GetOffset();
-    uint16_t end = aMessage.GetLength();
-    NetworkDiagnosticTlv tlv;
-
-    while (offset < end)
-    {
-        aMessage.Read(offset, sizeof(NetworkDiagnosticTlv), &tlv);
-
-        if (tlv.GetType() == aType && (offset + sizeof(tlv) + tlv.GetLength()) <= end)
-        {
-            aOffset = offset;
-            ExitNow(error = kThreadError_None);
-        }
-
-        offset += sizeof(tlv) + tlv.GetLength();
-    }
-
-exit:
-    return error;
-}
-
-}  // namespace NetworkDiagnostic
-}  // namespace Thread
+#endif  // OPENTHREAD_DHCP6_SERVER_H_

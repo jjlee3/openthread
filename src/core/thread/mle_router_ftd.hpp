@@ -666,6 +666,15 @@ public:
     ThreadError CheckReachability(uint16_t aMeshSource, uint16_t aMeshDest, Ip6::Header &aIp6Header);
 
     /**
+     * This method resolves 2-hop routing loops.
+     *
+     * @param[in]  aSourceMac   The RLOC16 of the previous hop.
+     * @param[in]  aDestRloc16  The RLOC16 of the final destination.
+     *
+     */
+    void ResolveRoutingLoops(uint16_t aSourceMac, uint16_t aDestRloc16);
+
+    /**
      * This method checks if a given Router ID has correct value.
      *
      * @param[in]  aRouterId  The Router ID value.
@@ -757,8 +766,9 @@ private:
     void UpdateRoutes(const RouteTlv &aTlv, uint8_t aRouterId);
 
     static void HandleAddressSolicitResponse(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
-                                             ThreadError result);
-    void HandleAddressSolicitResponse(Coap::Header *aHeader, Message *aMessage, ThreadError result);
+                                             const otMessageInfo *aMessageInfo, ThreadError result);
+    void HandleAddressSolicitResponse(Coap::Header *aHeader, Message *aMessage,
+                                      const Ip6::MessageInfo *aMessageInfo, ThreadError result);
     static void HandleAddressRelease(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
                                      const otMessageInfo *aMessageInfo);
     void HandleAddressRelease(Coap::Header &aHeader, Message &aMessage, const Ip6::MessageInfo &aMessageInfo);

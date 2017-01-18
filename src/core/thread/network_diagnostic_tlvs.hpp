@@ -39,6 +39,7 @@
 #include <openthread-types.h>
 #include <common/encoding.hpp>
 #include <common/message.hpp>
+#include <common/tlvs.hpp>
 #include <meshcop/tlvs.hpp>
 #include <net/ip6_address.hpp>
 #include <thread/mle_constants.hpp>
@@ -71,7 +72,7 @@ enum
  *
  */
 OT_TOOL_PACKED_BEGIN
-class NetworkDiagnosticTlv
+class NetworkDiagnosticTlv : public Thread::Tlv
 {
 public:
     /**
@@ -104,7 +105,7 @@ public:
      * @returns The Type value.
      *
      */
-    Type GetType(void) const { return static_cast<Type>(mType); }
+    Type GetType(void) const { return static_cast<Type>(Thread::Tlv::GetType()); }
 
     /**
      * This method sets the Type value.
@@ -112,26 +113,7 @@ public:
      * @param[in]  aType  The Type value.
      *
      */
-    void SetType(Type aType) { mType = static_cast<uint8_t>(aType); }
-
-    /**
-     * This method returns the Length value.
-     *
-     */
-    uint8_t GetLength(void) const { return mLength; }
-
-    /**
-     * This method returns the length to be sent
-     */
-    uint8_t GetSize(void) const { return mLength + sizeof(NetworkDiagnosticTlv); }
-
-    /**
-     * This method sets the Length value.
-     *
-     * @param[in]  aLength  The Length value.
-     *
-     */
-    void SetLength(uint8_t aLength) { mLength = aLength; }
+    void SetType(Type aType) { Thread::Tlv::SetType(static_cast<uint8_t>(aType)); }
 
     /**
      * This static method reads the requested TLV out of @p aMessage.
@@ -145,7 +127,9 @@ public:
      * @retval kThreadError_NotFound  Could not find the TLV with Type @p aType.
      *
      */
-    static ThreadError GetTlv(const Message &aMessage, Type aType, uint16_t aMaxLength, NetworkDiagnosticTlv &aTlv);
+    static ThreadError GetTlv(const Message &aMessage, Type aType, uint16_t aMaxLength, Tlv &aTlv) {
+        return Thread::Tlv::Get(aMessage, static_cast<uint8_t>(aType), aMaxLength, aTlv);
+    }
 
     /**
      * This static method obtains the offset of a TLV within @p aMessage.
@@ -158,11 +142,10 @@ public:
      * @retval kThreadError_NotFound  Could not find the TLV with Type @p aType.
      *
      */
-    static ThreadError GetOffset(const Message &aMessage, Type aType, uint16_t &aOffset);
+    static ThreadError GetOffset(const Message &aMessage, Type aType, uint16_t &aOffset) {
+        return Thread::Tlv::GetOffset(aMessage, static_cast<uint8_t>(aType), aOffset);
+    }
 
-private:
-    uint8_t mType;
-    uint8_t mLength;
 } OT_TOOL_PACKED_END;
 
 /**
@@ -1168,49 +1151,55 @@ class ChildTableEntry
 {
 public:
     /**
-     * This method returns the Version value.
+     * This method returns the Timeout value.
      *
-     * @returns The Version value.
-     *
-     */
-    uint8_t GetTimeout(void) const { return mTimeout; }
-
-    /**
-     * This method sets the Version value.
-     *
-     * @param[in]  aVersion  The Version value.
+     * @returns The Timeout value.
      *
      */
-    void SetTimeout(uint8_t aTimeout) { mTimeout = aTimeout; }
+    uint8_t GetTimeout(void) const { return (HostSwap16(mTimeoutRsvChildId) & kTimeoutMask) >> kTimeoutOffset; }
 
     /**
-     * This method returns the Version value.
+     * This method sets the Timeout value.
      *
-     * @returns The Version value.
+     * @param[in]  aTimeout  The Timeout value.
      *
      */
-    uint16_t GetChildId(void) const { return mChildId; }
+    void SetTimeout(uint8_t aTimeout) {
+        mTimeoutRsvChildId = HostSwap16((HostSwap16(mTimeoutRsvChildId) & ~kTimeoutMask) |
+                                        ((aTimeout << kTimeoutOffset) & kTimeoutMask));
+    }
 
     /**
-     * This method sets the Version value.
+     * This method returns the Child ID value.
      *
-     * @param[in]  aVersion  The Version value.
+     * @returns The Child ID value.
      *
      */
-    void SetChildId(uint16_t aChildId) { mChildId = aChildId; }
+    uint16_t GetChildId(void) const { return HostSwap16(mTimeoutRsvChildId) & kChildIdMask; }
 
     /**
-     * This method returns the Version value.
+     * This method sets the Child ID value.
      *
-     * @returns The Version value.
+     * @param[in]  aChildId  The Child ID value.
+     *
+     */
+    void SetChildId(uint16_t aChildId) {
+        mTimeoutRsvChildId = HostSwap16((HostSwap16(mTimeoutRsvChildId) & ~kChildIdMask) |
+                                        (aChildId & kChildIdMask));
+    }
+
+    /**
+     * This method returns the Mode value.
+     *
+     * @returns The Mode value.
      *
      */
     uint8_t GetMode(void) const { return mMode; }
 
     /**
-     * This method sets the Version value.
+     * This method sets the Mode value.
      *
-     * @param[in]  aVersion  The Version value.
+     * @param[in]  aMode  The Mode value.
      *
      */
     void SetMode(uint8_t aMode) { mMode = aMode; }
@@ -1221,7 +1210,7 @@ public:
      * @returns The Reserved value.
      *
      */
-    uint8_t GetReserved(void) const { return mReserved; }
+    uint8_t GetReserved(void) const { return (HostSwap16(mTimeoutRsvChildId) & kReservedMask) >> kReservedOffset; }
 
     /**
      * This method sets the Reserved value.
@@ -1229,13 +1218,22 @@ public:
      * @param[in]  aReserved  The Reserved value.
      *
      */
-    void SetReserved(uint8_t aReserved) { mReserved = aReserved; }
-
+    void SetReserved(uint8_t aReserved) {
+        mTimeoutRsvChildId = HostSwap16((HostSwap16(mTimeoutRsvChildId) & ~kReservedMask) |
+                                        ((aReserved << kReservedOffset) & kReservedMask));
+    }
 
 private:
-    uint16_t mTimeout: 5;
-    uint16_t mReserved: 2;
-    uint16_t mChildId: 9;
+    enum
+    {
+        kTimeoutMask = 0xF800,
+        kTimeoutOffset = 11,
+        kReservedMask = 0x0600,
+        kReservedOffset = 9,
+        kChildIdMask = 0x1ff
+    };
+
+    uint16_t mTimeoutRsvChildId;
     uint8_t mMode;
 } OT_TOOL_PACKED_END;
 

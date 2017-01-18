@@ -152,7 +152,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRIES
-#define OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRIES                 32
+#define OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRIES                  32
 #endif  // OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRIES
 
 /**
@@ -162,7 +162,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRY_LIFETIME
-#define OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRY_LIFETIME          5
+#define OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRY_LIFETIME           5
 #endif  // OPENTHREAD_CONFIG_MPL_SEED_SET_ENTRY_LIFETIME
 
 /**
@@ -315,7 +315,9 @@
  * Define to enable OpenThread API logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_API
+#ifndef OPENTHREAD_CONFIG_LOG_API
+#define OPENTHREAD_CONFIG_LOG_API                               1
+#endif  // OPENTHREAD_CONFIG_LOG_API
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_MLE
@@ -323,7 +325,9 @@
  * Define to enable MLE logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_MLE
+#ifndef OPENTHREAD_CONFIG_LOG_MLE
+#define OPENTHREAD_CONFIG_LOG_MLE                               1
+#endif  // OPENTHREAD_CONFIG_LOG_MLE
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_ARP
@@ -331,7 +335,9 @@
  * Define to enable EID-to-RLOC map logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_ARP
+#ifndef OPENTHREAD_CONFIG_LOG_ARP
+#define OPENTHREAD_CONFIG_LOG_ARP                               1
+#endif  // OPENTHREAD_CONFIG_LOG_ARP
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_NETDATA
@@ -339,7 +345,9 @@
  * Define to enable Network Data logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_NETDATA
+#ifndef OPENTHREAD_CONFIG_LOG_NETDATA
+#define OPENTHREAD_CONFIG_LOG_NETDATA                           1
+#endif  // OPENTHREAD_CONFIG_LOG_NETDATA
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_ICMP
@@ -347,7 +355,9 @@
  * Define to enable ICMPv6 logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_ICMP
+#ifndef OPENTHREAD_CONFIG_LOG_ICMP
+#define OPENTHREAD_CONFIG_LOG_ICMP                              1
+#endif  // OPENTHREAD_CONFIG_LOG_ICMP
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_IP6
@@ -355,7 +365,9 @@
  * Define to enable IPv6 logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_IP6
+#ifndef OPENTHREAD_CONFIG_LOG_IP6
+#define OPENTHREAD_CONFIG_LOG_IP6                               1
+#endif  // OPENTHREAD_CONFIG_LOG_IP6
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_MAC
@@ -363,7 +375,9 @@
  * Define to enable IEEE 802.15.4 MAC logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_MAC
+#ifndef OPENTHREAD_CONFIG_LOG_MAC
+#define OPENTHREAD_CONFIG_LOG_MAC                               1
+#endif  // OPENTHREAD_CONFIG_LOG_MAC
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_MEM
@@ -371,7 +385,19 @@
  * Define to enable memory logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_MEM
+#ifndef OPENTHREAD_CONFIG_LOG_MEM
+#define OPENTHREAD_CONFIG_LOG_MEM                               1
+#endif  // OPENTHREAD_CONFIG_LOG_MEM
+
+/**
+ * @def OPENTHREAD_CONFIG_LOG_PKT_DUMP
+ *
+ * Define to enable log content of packets.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_LOG_PKT_DUMP
+#define OPENTHREAD_CONFIG_LOG_PKT_DUMP                          1
+#endif  // OPENTHREAD_CONFIG_LOG_PKT_DUMP
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_NETDIAG
@@ -379,15 +405,39 @@
  * Define to enable network diagnostic logging.
  *
  */
-#define OPENTHREAD_CONFIG_LOG_NETDIAG
+#ifndef OPENTHREAD_CONFIG_LOG_NETDIAG
+#define OPENTHREAD_CONFIG_LOG_NETDIAG                           1
+#endif  // OPENTHREAD_CONFIG_LOG_NETDIAG
 
 /**
- * @def OPENTHREAD_CONFIG_LOG_PREPREND_REGION
+* @def OPENTHREAD_CONFIG_LOG_PLATFORM
+*
+* Define to enable platform region logging.
+*
+*/
+#ifndef OPENTHREAD_CONFIG_LOG_PLATFORM
+#define OPENTHREAD_CONFIG_LOG_PLATFORM                          0
+#endif  // OPENTHREAD_CONFIG_LOG_PLATFORM
+
+/**
+ * @def OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL
  *
- * Define to prepend the log region to all log messages
+ * Define to prepend the log level to all log messages
  *
  */
-#define OPENTHREAD_CONFIG_LOG_PREPEND_REGION
+#ifndef OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL
+#define OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL                     1
+#endif  // OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL
+
+/**
+* @def OPENTHREAD_CONFIG_LOG_PREPEND_REGION
+*
+* Define to prepend the log region to all log messages
+*
+*/
+#ifndef OPENTHREAD_CONFIG_LOG_PREPEND_REGION
+#define OPENTHREAD_CONFIG_LOG_PREPEND_REGION                    1
+#endif  // OPENTHREAD_CONFIG_LOG_PREPEND_REGION
 
 /**
  * @def OPENTHREAD_CONFIG_LOG_SUFFIX
@@ -426,7 +476,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE
-#define OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE                   512
+#define OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE                    512
 #endif  // OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE
 
 /**
@@ -436,7 +486,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_UART_TX_CHUNK_SIZE
-#define OPENTHREAD_CONFIG_NCP_UART_TX_CHUNK_SIZE               128
+#define OPENTHREAD_CONFIG_NCP_UART_TX_CHUNK_SIZE                128
 #endif  // OPENTHREAD_CONFIG_NCP_UART_TX_CHUNK_SIZE
 
 /**
@@ -446,7 +496,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE
-#define OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE              1500
+#define OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE               1500
 #endif  // OPENTHREAD_CONFIG_NCP_UART_RX_BUFFER_SIZE
 
 /**
@@ -456,7 +506,7 @@
  *
  */
 #ifndef OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
-#define OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE                  1500
+#define OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE                   1500
 #endif  // OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
 
 #endif  // OPENTHREAD_CORE_DEFAULT_CONFIG_H_

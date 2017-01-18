@@ -1317,6 +1317,18 @@ otIsDiscoverInProgress(
 }
 
 OTAPI 
+ThreadError
+OTCALL
+otSendMacDataRequest(
+    _In_ otInstance *aInstance
+    )
+{
+    if (aInstance == nullptr) return kThreadError_InvalidArgs;
+    UNREFERENCED_PARAMETER(aInstance);
+    return kThreadError_NotImplemented; // TODO
+}
+
+OTAPI 
 uint8_t 
 OTCALL
 otGetChannel(
@@ -1903,8 +1915,8 @@ otGetUnicastAddresses(
 
                 // Copy the necessary parameters
                 memcpy(&addrs[AddrCount].mAddress, &pAddr->sin6_addr, sizeof(pAddr->sin6_addr));
-                addrs[AddrCount].mPreferredLifetime = pUnicastAddr->PreferredLifetime;
-                addrs[AddrCount].mValidLifetime = pUnicastAddr->ValidLifetime;
+                addrs[AddrCount].mPreferred = pUnicastAddr->PreferredLifetime != 0;
+                addrs[AddrCount].mValid = pUnicastAddr->ValidLifetime != 0;
                 addrs[AddrCount].mPrefixLength = pUnicastAddr->OnLinkPrefixLength;
 
                 AddrCount++;
@@ -1967,8 +1979,8 @@ otAddUnicastAddress(
 
     memcpy(&newRow.Address.Ipv6.sin6_addr, &aAddress->mAddress, sizeof(IN6_ADDR));
     newRow.OnLinkPrefixLength = aAddress->mPrefixLength;
-    newRow.PreferredLifetime = aAddress->mPreferredLifetime;
-    newRow.ValidLifetime = aAddress->mValidLifetime;
+    newRow.PreferredLifetime = aAddress->mPreferred ? 0xffffffff : 0;
+    newRow.ValidLifetime = aAddress->mValid ? 0xffffffff : 0;
     newRow.PrefixOrigin = IpPrefixOriginOther;  // Derived from network XPANID
     newRow.SkipAsSource = FALSE;                // Allow automatic binding to this address (default)
 
@@ -3478,7 +3490,9 @@ OTCALL
 otJoinerStart(
      _In_ otInstance *aInstance,
     const char *aPSKd, 
-    const char *aProvisioningUrl
+    const char *aProvisioningUrl,
+    _In_ otJoinerCallback aCallback,
+    _In_ void *aCallbackContext
     )
 {
     if (aInstance == nullptr || aPSKd == nullptr) return kThreadError_InvalidArgs;

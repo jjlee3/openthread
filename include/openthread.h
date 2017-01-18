@@ -434,6 +434,19 @@ OTAPI ThreadError OTCALL otDiscover(otInstance *aInstance, uint32_t aScanChannel
 OTAPI bool OTCALL otIsDiscoverInProgress(otInstance *aInstance);
 
 /**
+ * This function enqueues an IEEE 802.15.4 Data Request message for transmission.
+ *
+ * @param[in] aInstance  A pointer to an OpenThread instance.
+ *
+ * @retval kThreadError_None          Successfully enqueued an IEEE 802.15.4 Data Request message.
+ * @retval kThreadError_Already       An IEEE 802.15.4 Data Request message is already enqueued.
+ * @retval kThreadError_InvalidState  Device is not in rx-off-when-idle mode.
+ * @retval kThreadError_NoBufs        Insufficient message buffers available.
+ *
+ */
+OTAPI ThreadError OTCALL otSendMacDataRequest(otInstance *aInstance);
+
+/**
  * @}
  *
  */
@@ -936,7 +949,7 @@ OTAPI ThreadError OTCALL otGetPendingDataset(otInstance *aInstance, otOperationa
  * @param[in]  aDataset  A pointer to the Pending Operational Dataset.
  *
  * @retval kThreadError_None         Successfully set the Pending Operational Dataset.
- * @retval kThreadError_NoBufs       Insufficient buffer space to set the Pending Operational Datset.
+ * @retval kThreadError_NoBufs       Insufficient buffer space to set the Pending Operational Dataset.
  * @retval kThreadError_InvalidArgs  @p aDataset was NULL.
  *
  */
@@ -1895,7 +1908,31 @@ OTAPI ThreadError OTCALL otGetParentInfo(otInstance *aInstance, otRouterInfo *aP
 OTAPI uint8_t OTCALL otGetStableNetworkDataVersion(otInstance *aInstance);
 
 /**
- * Send a Network Diagnostic Get request
+ * This function pointer is called when Network Diagnostic Get response is received.
+ *
+ * @param[in]  aMessage      A pointer to the message buffer containing the received Network Diagnostic
+ *                           Get response payload.
+ * @param[in]  aMessageInfo  A pointer to the message info for @p aMessage.
+ * @param[in]  aContext      A pointer to application-specific context.
+ *
+ */
+typedef void (*otReceiveDiagnosticGetCallback)(otMessage aMessage, const otMessageInfo *aMessageInfo,
+                                               void *aContext);
+
+/**
+ * This function registers a callback to provide received raw Network Diagnostic Get response payload.
+ *
+ * @param[in]  aInstance         A pointer to an OpenThread instance.
+ * @param[in]  aCallback         A pointer to a function that is called when Network Diagnostic Get response
+ *                               is received or NULL to disable the callback.
+ * @param[in]  aCallbackContext  A pointer to application-specific context.
+ *
+ */
+void otSetReceiveDiagnosticGetCallback(otInstance *aInstance, otReceiveDiagnosticGetCallback aCallback,
+                                       void *aCallbackContext);
+
+/**
+ * Send a Network Diagnostic Get request.
  *
  * @param[in]  aDestination   A pointer to destination address.
  * @param[in]  aTlvTypes      An array of Network Diagnostic TLV types.
@@ -1905,7 +1942,7 @@ OTAPI ThreadError OTCALL otSendDiagnosticGet(otInstance *aInstance, const otIp6A
                                              const uint8_t aTlvTypes[], uint8_t aCount);
 
 /**
- * Send a Network Diagnostic Reset request
+ * Send a Network Diagnostic Reset request.
  *
  * @param[in]  aInstance      A pointer to an OpenThread instance.
  * @param[in]  aDestination   A pointer to destination address.
@@ -1970,6 +2007,16 @@ OTAPI ThreadError OTCALL otIp6AddressFromString(const char *aString, otIp6Addres
  *
  */
 OTAPI uint8_t OTCALL otIp6PrefixMatch(const otIp6Address *aFirst, const otIp6Address *aSecond);
+
+/**
+ * This function converts a ThreadError enum into a string.
+ *
+ * @param[in]  aError     A ThreadError enum.
+ *
+ * @returns  A string representation of a ThreadError.
+ *
+ */
+OTAPI const char *OTCALL otThreadErrorToString(ThreadError aError);
 
 #ifdef __cplusplus
 }  // extern "C"

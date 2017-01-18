@@ -49,7 +49,6 @@ linesepx = re.compile(r'\r\n|\n')
 """regex: used to split lines"""
 
 class OpenThread(IThci):
-    firmware = 'g7d33184; CC2538; Dec  1 2016 15:43:40'
     UIStatusMsg = ''
     networkDataRequirement = ''      # indicate Thread device requests full or stable network data
     isPowerDown = False              # indicate if Thread device experiences a power down event
@@ -70,7 +69,6 @@ class OpenThread(IThci):
             self.mac = kwargs.get('EUI')
             self.port = kwargs.get('SerialPort')
             self.handle = None
-            self.UIStatusMsg = self.firmware
             self.networkName = ModuleHelper.Default_NwkName
             self.networkKey = ModuleHelper.Default_NwkKey
             self.channel = ModuleHelper.Default_Channel
@@ -82,7 +80,8 @@ class OpenThread(IThci):
             self.pskc = ModuleHelper.Default_PSKc
             self.securityPolicySecs = ModuleHelper.Default_SecurityPolicy
             self.activetimestamp = ModuleHelper.Default_ActiveTimestamp
-            self.SED_Polling_Rate = ModuleHelper.Default_Harness_SED_Polling_Rate
+            self.sedPollingRate = ModuleHelper.Default_Harness_SED_Polling_Rate
+            self.deviceRole = None
             self.provisioningUrl = ''
             self.logThread = Queue()
             self.logStatus = {'stop':'stop', 'running':'running', "pauseReq":'pauseReq', 'paused':'paused'}
@@ -98,7 +97,7 @@ class OpenThread(IThci):
         except Exception, e:
             ModuleHelper.WriteIntoDebugLogger("delete() Error: " + str(e))
 
-    def _expect(self, expected, times=100):
+    def _expect(self, expected, times=50):
         """Find the `expected` line within `times` trials.
 
         Args:
@@ -107,7 +106,11 @@ class OpenThread(IThci):
         """
         print '[%s] Expecting [%s]' % (self.port, expected)
 
+        retry_times = 10
         for i in range(0, times):
+            if not retry_times:
+                break
+
             line = self._readline()
             print '[%s] Got line [%s]' % (self.port, line)
 
@@ -116,7 +119,8 @@ class OpenThread(IThci):
                 return
 
             if not line:
-                time.sleep(1)
+                retry_times -= 1
+                time.sleep(0.1)
 
         raise Exception('failed to find expected string[%s]' % expected)
 
@@ -669,10 +673,9 @@ class OpenThread(IThci):
             self.handle = socket.create_connection((host, port))
             self.handle.setblocking(0)
             self._is_net = True
-            # check connectivity, this make sure bad device fail on initializing
-            self.__sendCommand('state')
         else:
             raise Exception('Unknown port schema')
+        self.UIStatusMsg = self.getVersionNumber()
 
     def closeConnection(self):
         """close current serial port connection"""
@@ -696,7 +699,6 @@ class OpenThread(IThci):
         except Exception, e:
             ModuleHelper.WriteIntoDebugLogger("intialize() Error: " + str(e))
             self.deviceConnected = False
-            sys.exit()
 
     def setNetworkName(self, networkName='GRL'):
         """set Thread Network name
@@ -982,6 +984,8 @@ class OpenThread(IThci):
         """
         print '%s call joinNetwork' % self.port
         print eRoleId
+
+        self.deviceRole = eRoleId
         mode = ''
         try:
             if ModuleHelper.LeaderDutChannelFound:
@@ -1004,8 +1008,7 @@ class OpenThread(IThci):
             elif eRoleId == Thread_Device_Role.SED:
                 print 'join as sleepy end device'
                 mode = 's'
-                # set data polling rate to 15s for SED
-                self.setPollingRate(15)
+                self.setPollingRate(self.sedPollingRate)
             elif eRoleId == Thread_Device_Role.EndDevice:
                 print 'join as end device'
                 mode = 'rsn'
@@ -1160,7 +1163,7 @@ class OpenThread(IThci):
     def getVersionNumber(self):
         """get OpenThread stack firmware version number"""
         print '%s call getVersionNumber' % self.port
-        return self.firmware
+        return self.__sendCommand('version')[0]
 
     def setPANID(self, xPAN):
         """set Thread Network PAN ID
@@ -1349,6 +1352,9 @@ class OpenThread(IThci):
         try:
             self._sendline('reset')
             time.sleep(timeout)
+
+            if self.deviceRole == Thread_Device_Role.SED:
+                self.setPollingRate(self.sedPollingRate)
 
             self.__startOpenThread()
             time.sleep(3)
