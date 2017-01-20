@@ -4,6 +4,8 @@
 #include <network/Ipv6.h>
 #include "detail/NotifyFun.h"
 
+struct Options;
+
 // service for each client from the server
 class ClientService
 {
@@ -24,7 +26,7 @@ protected:
     using thread_uptr  = std::unique_ptr<thread_t>;
     using thread_csptr = thread_uptr;
 
-    void threadMain();
+    void threadMain(const Options&);
 
     SOCKET               s_ = mstc::network::Ipv6::invalid();
     socket_t             sock_;

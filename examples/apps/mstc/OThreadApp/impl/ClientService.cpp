@@ -5,6 +5,7 @@
 #include "detail/Log.h"
 #include "detail/ClientService.h"
 #include "detail/StdOutput.h"
+#include "detail/Options.h"
 
 ClientService::ClientService(
     socket_t&&                  sock,
@@ -40,7 +41,7 @@ ClientService::start()
     stopping_ = false;
     thrd_ = std::make_unique<thread_t>([this]()
     {
-        threadMain();
+        threadMain(g_options);
     });
     return true;
 }
@@ -56,7 +57,8 @@ ClientService::stop()
 }
 
 void
-ClientService::threadMain()
+ClientService::threadMain(
+    const Options& options)
 {
     std::string msg = "ClientService::threadMain ended";
 
@@ -95,7 +97,15 @@ ClientService::threadMain()
                os << " server receive \"" << buf << "\" from client" << std::endl;
             });
 
-            sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
+            if (options.listenerName_.empty())
+            {
+                sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
+            }
+            else
+            {
+                sprintf_s(&buf[len], _countof(buf) - len, " - server '%s' got %d chars",
+                    options.listenerName_.c_str(), len);
+            }
             len = static_cast<int>(strlen(buf));
             sock_.send(buf, len, 0);
         }

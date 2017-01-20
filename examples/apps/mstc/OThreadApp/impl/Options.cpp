@@ -2,6 +2,7 @@
 #include <limits>
 #include "detail/Options.h"
 
+static const char* listenerName = "listenerName:";
 static const char* listenerIP   = "listenerIP:";
 static const char* listenerPort = "listenerPort:";
 static const char* clientIP     = "clientIP:";
@@ -25,7 +26,11 @@ Options::parse(
         if (*arg != '/' && *arg != '-') { continue; }
 
         ++arg;
-        if (_strnicmp(arg, listenerIP, strlen(listenerIP)) == 0)
+        if (_strnicmp(arg, listenerName, strlen(listenerName)) == 0)
+        {
+            listenerName_ = arg + strlen(listenerName);
+        }
+        else if (_strnicmp(arg, listenerIP, strlen(listenerIP)) == 0)
         {
             const char* terminator = nullptr;
             ::RtlIpv6StringToAddressA(arg + strlen(listenerIP),

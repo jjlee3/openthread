@@ -314,7 +314,15 @@ Listener::threadMain(
                 os << " server recvfrom \"" << buf << "\"" << std::endl;
             });
 
-            sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
+            if (options.listenerName_.empty())
+            {
+                sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
+            }
+            else
+            {
+                sprintf_s(&buf[len], _countof(buf) - len, " - server '%s' got %d chars",
+                    options.listenerName_.c_str(), len);
+            }
             len = static_cast<int>(strlen(buf));
             sock_.sendto(buf, len, 0,
                 reinterpret_cast<sockaddr*>(&clientAddr), clientLen);
