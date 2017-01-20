@@ -259,7 +259,7 @@ Listener::threadMain(
             reinterpret_cast<const char*>(&optval), sizeof(optval));
         sock_.setsockopt(SOL_SOCKET, SO_REUSEADDR,
             reinterpret_cast<const char*>(&optval), sizeof(optval));
-        sock_.bind(&options.listenerAddr_, sizeof(options.listenerAddr_));
+        sock_.bind(&options.serverAddr_, sizeof(options.serverAddr_));
 
         namespace the_thread = std::this_thread;
         using milliseconds = std::chrono::milliseconds;
@@ -301,7 +301,7 @@ Listener::threadMain(
             {
                 g_log([](std::ostream& os)
                 {
-                    os << " server recvfrom ERROR" << std::endl;
+                    os << " server receive ERROR" << std::endl;
                 });
                 continue;
             }
@@ -311,17 +311,17 @@ Listener::threadMain(
             buf[len] = '\0';
             g_log([&buf](std::ostream& os)
             {
-                os << " server recvfrom \"" << buf << "\"" << std::endl;
+                os << " server receive \"" << buf << "\"" << std::endl;
             });
 
-            if (options.listenerName_.empty())
+            if (options.serverName_.empty())
             {
                 sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
             }
             else
             {
                 sprintf_s(&buf[len], _countof(buf) - len, " - server '%s' got %d chars",
-                    options.listenerName_.c_str(), len);
+                    options.serverName_.c_str(), len);
             }
             len = static_cast<int>(strlen(buf));
             sock_.sendto(buf, len, 0,

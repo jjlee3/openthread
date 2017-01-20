@@ -2,11 +2,11 @@
 #include <limits>
 #include "detail/Options.h"
 
-static const char* listenerName = "listenerName:";
-static const char* listenerIP   = "listenerIP:";
-static const char* listenerPort = "listenerPort:";
-static const char* clientIP     = "clientIP:";
-static const char* clientPort   = "clientPort:";
+static const char* serverName = "serverName:";
+static const char* serverIP   = "serverIP:";
+static const char* serverPort = "serverPort:";
+static const char* clientIP   = "clientIP:";
+static const char* clientPort = "clientPort:";
 
 Options g_options;
 
@@ -26,30 +26,30 @@ Options::parse(
         if (*arg != '/' && *arg != '-') { continue; }
 
         ++arg;
-        if (_strnicmp(arg, listenerName, strlen(listenerName)) == 0)
+        if (_strnicmp(arg, serverName, strlen(serverName)) == 0)
         {
-            listenerName_ = arg + strlen(listenerName);
+            serverName_ = arg + strlen(serverName);
         }
-        else if (_strnicmp(arg, listenerIP, strlen(listenerIP)) == 0)
+        else if (_strnicmp(arg, serverIP, strlen(serverIP)) == 0)
         {
             const char* terminator = nullptr;
-            ::RtlIpv6StringToAddressA(arg + strlen(listenerIP),
-                &terminator, &listenerAddr_.sin6_addr);
+            ::RtlIpv6StringToAddressA(arg + strlen(serverIP),
+                &terminator, &serverAddr_.sin6_addr);
         }
-        else if (_strnicmp(arg, listenerPort, strlen(listenerPort)) == 0)
+        else if (_strnicmp(arg, serverPort, strlen(serverPort)) == 0)
         {
-            auto p = std::atoi(arg + strlen(listenerPort));
+            auto p = std::atoi(arg + strlen(serverPort));
             if (p < 0)
             {
                 MSTC_THROW_EXCEPTION(PortFailure{"listener port"});
             }
-            else if (p > (std::numeric_limits<decltype(listenerPort_)>::max)())
+            else if (p > (std::numeric_limits<decltype(serverPort_)>::max)())
             {
                 MSTC_THROW_EXCEPTION(PortFailure{"listener port"});
             }
             else
             {
-                listenerPort_ = static_cast<decltype(listenerPort_)>(p);
+                serverPort_ = static_cast<decltype(serverPort_)>(p);
             }
         }
         else if (_strnicmp(arg, clientIP, strlen(clientIP)) == 0)
@@ -79,8 +79,6 @@ Options::parse(
         }
     }
 
-    listenerAddr_.sin6_port = ::htons(listenerPort_);
-//  listenerAddr_.sin6_port = listenerPort_;
+    serverAddr_.sin6_port = ::htons(serverPort_);
     clientAddr_.sin6_port   = ::htons(clientPort_);
-//  clientAddr_.sin6_port   = clientPort_;
 }

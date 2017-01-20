@@ -97,14 +97,14 @@ ClientService::threadMain(
                os << " server receive \"" << buf << "\" from client" << std::endl;
             });
 
-            if (options.listenerName_.empty())
+            if (options.serverName_.empty())
             {
                 sprintf_s(&buf[len], _countof(buf) - len, " - server got %d chars", len);
             }
             else
             {
                 sprintf_s(&buf[len], _countof(buf) - len, " - server '%s' got %d chars",
-                    options.listenerName_.c_str(), len);
+                    options.serverName_.c_str(), len);
             }
             len = static_cast<int>(strlen(buf));
             sock_.send(buf, len, 0);

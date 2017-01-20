@@ -89,7 +89,7 @@ Client::threadMain(
 #ifdef SOCK_TCP
         sock_.connect(&options.listenerAddr_, sizeof(options.listenerAddr_));
 #else
-        sockaddr_in6 listenerAddr = options.listenerAddr_;
+        sockaddr_in6 listenerAddr = options.serverAddr_;
         int          listenerLen  = sizeof(listenerAddr);
 #endif
 
