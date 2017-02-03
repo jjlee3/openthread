@@ -224,7 +224,6 @@ private:
     static ThreadError SendRelayTransmit(void *aContext, Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
     ThreadError SendRelayTransmit(Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
 
-    void SendDatasetChangedResponse(const Coap::Header &aRequestHeader, const Ip6::MessageInfo &aMessageInfo);
     ThreadError SendCommissionerSet(void);
     ThreadError SendPetition(void);
     ThreadError SendKeepAlive(void);
@@ -256,9 +255,6 @@ private:
     Coap::Resource mRelayReceive;
     Coap::Resource mDatasetChanged;
     Coap::Resource mJoinerFinalize;
-    Coap::Server &mCoapServer;
-    Coap::Client &mCoapClient;
-    Coap::SecureServer &mSecureCoapServer;
 
     ThreadNetif &mNetif;
 };

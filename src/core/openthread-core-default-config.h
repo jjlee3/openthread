@@ -36,6 +36,46 @@
 #define OPENTHREAD_CORE_DEFAULT_CONFIG_H_
 
 /**
+ * @def OPENTHREAD_CONFIG_STACK_VENDOR_OUI
+ *
+ * The Organizationally Unique Identifier for the Thread stack.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_STACK_VENDOR_OUI
+#define OPENTHREAD_CONFIG_STACK_VENDOR_OUI                      0x18b430
+#endif  // OPENTHREAD_CONFIG_STACK_VENDOR_OUI
+
+/**
+ * @def OPENTHREAD_CONFIG_STACK_VERSION_REV
+ *
+ * The Stack Version Revision for the Thread stack.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_STACK_VERSION_REV
+#define OPENTHREAD_CONFIG_STACK_VERSION_REV                     0
+#endif  // OPENTHREAD_CONFIG_STACK_VERSION_REV
+
+/**
+ * @def OPENTHREAD_CONFIG_STACK_VERSION_MAJOR
+ *
+ * The Stack Version Major for the Thread stack.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_STACK_VERSION_MAJOR
+#define OPENTHREAD_CONFIG_STACK_VERSION_MAJOR                   0
+#endif  // OPENTHREAD_CONFIG_STACK_VERSION_MAJOR
+
+/**
+ * @def OPENTHREAD_CONFIG_STACK_VERSION_MINOR
+ *
+ * The Stack Version Minor for the Thread stack.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_STACK_VERSION_MINOR
+#define OPENTHREAD_CONFIG_STACK_VERSION_MINOR                   1
+#endif  // OPENTHREAD_CONFIG_STACK_VERSION_MINOR
+
+/**
  * @def OPENTHREAD_CONFIG_NUM_MESSAGE_BUFFERS
  *
  * The number of message buffers in the buffer pool.
@@ -508,5 +548,15 @@
 #ifndef OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
 #define OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE                   1500
 #endif  // OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
+
+/**
+ * @def OPENTHREAD_CONFIG_PLATFORM_ASSERT_MANAGEMENT
+ *
+ * The assert is managed by platform defined logic when this flag is set.
+ *
+ */
+#ifndef OPENTHREAD_CONFIG_PLATFORM_ASSERT_MANAGEMENT
+#define OPENTHREAD_CONFIG_PLATFORM_ASSERT_MANAGEMENT            0
+#endif
 
 #endif  // OPENTHREAD_CORE_DEFAULT_CONFIG_H_

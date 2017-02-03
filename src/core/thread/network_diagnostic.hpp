@@ -109,7 +109,6 @@ private:
     ThreadError AppendIPv6AddressList(Message &aMessage);
     ThreadError AppendChildTable(Message &aMessage);
     ThreadError FillRequestedTlvs(Message &aRequest, Message &aResponse, NetworkDiagnosticTlv &aNetworkDiagnosticTlv);
-    ThreadError SendEmptyAck(Coap::Header &aHeader, const Ip6::MessageInfo &aMessageInfo);
 
     static void HandleDiagnosticGetRequest(void *aContext, otCoapHeader *aHeader, otMessage aMessage,
                                            const otMessageInfo *aMessageInfo);
@@ -136,11 +135,7 @@ private:
     Coap::Resource mDiagnosticGetQuery;
     Coap::Resource mDiagnosticGetAnswer;
     Coap::Resource mDiagnosticReset;
-    Coap::Server &mCoapServer;
-    Coap::Client &mCoapClient;
 
-    Mle::MleRouter &mMle;
-    Mac::Mac &mMac;
     ThreadNetif &mNetif;
 
     otReceiveDiagnosticGetCallback mReceiveDiagnosticGetCallback;

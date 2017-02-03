@@ -32,6 +32,8 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 DIST_SUBDIRS                            = \
     cc2538                                \
+    da15000                               \
+    nrf52840                              \
     posix                                 \
     utils                                 \
     $(NULL)
@@ -42,18 +44,28 @@ SUBDIRS                                 = \
     utils                                 \
     $(NULL)
 
-if OPENTHREAD_EXAMPLES_POSIX
-SUBDIRS                                += posix
-endif
-
 if OPENTHREAD_EXAMPLES_CC2538
 SUBDIRS                                += cc2538
+endif
+
+if OPENTHREAD_EXAMPLES_DA15000
+SUBDIRS                                += da15000
+endif
+
+if OPENTHREAD_EXAMPLES_NRF52840
+SUBDIRS                                += nrf52840
+endif
+
+if OPENTHREAD_EXAMPLES_POSIX
+SUBDIRS                                += posix
 endif
 
 # Always pretty (e.g. for 'make pretty') these subdirectories.
 
 PRETTY_SUBDIRS                          = \
     cc2538                                \
+    da15000                               \
+    nrf52840                              \
     posix                                 \
     utils                                 \
     $(NULL)

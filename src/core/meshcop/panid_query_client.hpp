@@ -80,14 +80,10 @@ private:
                                const otMessageInfo *aMessageInfo);
     void HandleConflict(Coap::Header &aHeader, Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
 
-    ThreadError SendConflictResponse(const Coap::Header &aRequestHeader, const Ip6::MessageInfo &aRequestMessageInfo);
-
     otCommissionerPanIdConflictCallback mCallback;
     void *mContext;
 
     Coap::Resource mPanIdQuery;
-    Coap::Server &mCoapServer;
-    Coap::Client &mCoapClient;
 
     ThreadNetif &mNetif;
 };

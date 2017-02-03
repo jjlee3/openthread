@@ -80,11 +80,18 @@ class Sniffer:
         while self._thread_alive.is_set():
             data, nodeid = self._transport.recv(self.RECV_BUFFER_SIZE)
 
-            msg = self._message_factory.create(io.BytesIO(data))
+            # Ignore any exceptions
+            try:
+                msg = self._message_factory.create(io.BytesIO(data))
 
-            if msg is not None:
-                self.logger.debug("Received message: {}".format(msg))
-                self._buckets[nodeid].put(msg)
+                if msg is not None:
+                    self.logger.debug("Received message: {}".format(msg))
+                    self._buckets[nodeid].put(msg)
+
+            except Exception as e:
+                # Just print the exception to the console
+                print("EXCEPTION: %s" % e)
+                pass
 
         self.logger.debug("Sniffer stopped.")
 
@@ -103,10 +110,11 @@ class Sniffer:
         """ Stop sniffing. """
 
         self._thread_alive.clear()
-        self._thread.join()
-        self._thread = None
 
         self._transport.close()
+        
+        self._thread.join()
+        self._thread = None
 
     def get_messages_sent_by(self, nodeid):
         """ Get sniffed messages.

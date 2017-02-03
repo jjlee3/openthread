@@ -39,8 +39,8 @@ ot_ncp_CPPFLAGS                                                        = \
     $(NULL)
 
 ot_ncp_LDADD                                                           = \
-    $(top_builddir)/src/core/libopenthread-ftd.a                         \
     $(top_builddir)/src/ncp/libopenthread-ncp.a                          \
+    $(top_builddir)/src/core/libopenthread-ftd.a                         \
     $(NULL)
 
 ot_ncp_LDFLAGS                                                         = \
@@ -63,7 +63,7 @@ ot_ncp_LDADD                                                          += \
     $(top_builddir)/examples/platforms/posix/libopenthread-posix.a       \
     -lstdc++                                                             \
     $(NULL)
-endif
+endif # OPENTHREAD_EXAMPLES_POSIX
 
 if OPENTHREAD_EXAMPLES_CC2538
 ot_ncp_LDADD                                                          += \
@@ -72,6 +72,26 @@ ot_ncp_LDADD                                                          += \
 
 ot_ncp_LDFLAGS                                                        += \
     -T $(top_srcdir)/examples/platforms/cc2538/cc2538.ld                 \
+    $(NULL)
+endif # OPENTHREAD_EXAMPLES_CC2538
+
+if OPENTHREAD_EXAMPLES_DA15000
+ot_ncp_LDADD                                                          += \
+    $(top_builddir)/examples/platforms/da15000/libopenthread-da15000.a   \
+    $(NULL)
+
+ot_ncp_LDFLAGS                                                        += \
+    -T $(top_srcdir)/examples/platforms/da15000/da15000.ld               \
+    $(NULL)
+endif # OPENTHREAD_EXAMPLES_DA15000
+
+if OPENTHREAD_EXAMPLES_NRF52840
+ot_ncp_LDADD                                                          += \
+    $(top_builddir)/examples/platforms/nrf52840/libopenthread-nrf52840.a \
+    $(NULL)
+
+ot_ncp_LDFLAGS                                                        += \
+    -T $(top_srcdir)/examples/platforms/nrf52840/nrf52840.ld             \
     $(NULL)
 endif
 

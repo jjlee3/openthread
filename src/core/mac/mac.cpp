@@ -107,8 +107,6 @@ Mac::Mac(ThreadNetif &aThreadNetif):
     mMacTimer(aThreadNetif.GetIp6().mTimerScheduler, &Mac::HandleMacTimer, this),
     mBackoffTimer(aThreadNetif.GetIp6().mTimerScheduler, &Mac::HandleBeginTransmit, this),
     mReceiveTimer(aThreadNetif.GetIp6().mTimerScheduler, &Mac::HandleReceiveTimer, this),
-    mKeyManager(aThreadNetif.GetKeyManager()),
-    mMle(aThreadNetif.GetMle()),
     mNetif(aThreadNetif),
     mEnergyScanSampleRssiTask(aThreadNetif.GetIp6().mTaskletScheduler, &Mac::HandleEnergyScanSampleRssi, this),
     mWhitelist(),
@@ -163,6 +161,8 @@ Mac::Mac(ThreadNetif &aThreadNetif):
 
     otPlatRadioEnable(mNetif.GetInstance());
     mTxFrame = static_cast<Frame *>(otPlatRadioGetTransmitBuffer(mNetif.GetInstance()));
+
+    mKeyIdMode2FrameCounter = 0;
 }
 
 ThreadError Mac::ActiveScan(uint32_t aScanChannels, uint16_t aScanDuration, ActiveScanHandler aHandler, void *aContext)
@@ -264,7 +264,21 @@ void Mac::StartEnergyScan(void)
 
 extern "C" void otPlatRadioEnergyScanDone(otInstance *aInstance, int8_t aEnergyScanMaxRssi)
 {
-    aInstance->mThreadNetif.GetMac().EnergyScanDone(aEnergyScanMaxRssi);
+#if OPENTHREAD_ENABLE_RAW_LINK_API
+
+    if (aInstance->mLinkRawEnabled)
+    {
+        if (aInstance->mLinkRawEnergyScanDoneCallback)
+        {
+            aInstance->mLinkRawEnergyScanDoneCallback(aInstance, aEnergyScanMaxRssi);
+            aInstance->mLinkRawEnergyScanDoneCallback = NULL;
+        }
+    }
+    else
+#endif // OPENTHREAD_ENABLE_RAW_LINK_API
+    {
+        aInstance->mThreadNetif.GetMac().EnergyScanDone(aEnergyScanMaxRssi);
+    }
 }
 
 void Mac::EnergyScanDone(int8_t aEnergyScanMaxRssi)
@@ -460,8 +474,7 @@ ThreadError Mac::SetNetworkName(const char *aNetworkName)
 
     VerifyOrExit(strlen(aNetworkName) <= OT_NETWORK_NAME_MAX_SIZE, error = kThreadError_InvalidArgs);
 
-    memset(&mNetworkName, 0, sizeof(mNetworkName));
-    strncpy(mNetworkName.m8, aNetworkName, sizeof(mNetworkName));
+    strncpy(mNetworkName.m8, aNetworkName, sizeof(mNetworkName) - 1);
 
 exit:
     otLogFuncExitErr(error);
@@ -670,16 +683,17 @@ void Mac::ProcessTransmitSecurity(Frame &aFrame)
     switch (keyIdMode)
     {
     case Frame::kKeyIdMode0:
-        key = mKeyManager.GetKek();
-        frameCounter = mKeyManager.GetKekFrameCounter();
+        key = mNetif.GetKeyManager().GetKek();
+        frameCounter = mNetif.GetKeyManager().GetKekFrameCounter();
+        mNetif.GetKeyManager().IncrementKekFrameCounter();
         extAddress = &mExtAddress;
         break;
 
     case Frame::kKeyIdMode1:
-        key = mKeyManager.GetCurrentMacKey();
-        frameCounter = mKeyManager.GetMacFrameCounter();
-        mKeyManager.IncrementMacFrameCounter();
-        aFrame.SetKeyId((mKeyManager.GetCurrentKeySequence() & 0x7f) + 1);
+        key = mNetif.GetKeyManager().GetCurrentMacKey();
+        frameCounter = mNetif.GetKeyManager().GetMacFrameCounter();
+        mNetif.GetKeyManager().IncrementMacFrameCounter();
+        aFrame.SetKeyId((mNetif.GetKeyManager().GetCurrentKeySequence() & 0x7f) + 1);
         extAddress = &mExtAddress;
         break;
 
@@ -687,7 +701,7 @@ void Mac::ProcessTransmitSecurity(Frame &aFrame)
     {
         const uint8_t keySource[] = {0xff, 0xff, 0xff, 0xff};
         key = sMode2Key;
-        frameCounter = 0xffffffff;
+        frameCounter = mKeyIdMode2FrameCounter++;
         aFrame.SetKeySource(keySource);
         aFrame.SetKeyId(0xff);
         extAddress = static_cast<const ExtAddress *>(&sMode2ExtAddress);
@@ -791,7 +805,22 @@ extern "C" void otPlatRadioTransmitDone(otInstance *aInstance, RadioPacket *aPac
 {
     otLogFuncEntryMsg("%!otError!, aRxPending=%u", aError, aRxPending ? 1 : 0);
 
-    aInstance->mThreadNetif.GetMac().TransmitDoneTask(aPacket, aRxPending, aError);
+#if OPENTHREAD_ENABLE_RAW_LINK_API
+
+    if (aInstance->mLinkRawEnabled)
+    {
+        if (aInstance->mLinkRawTransmitDoneCallback)
+        {
+            aInstance->mLinkRawTransmitDoneCallback(aInstance, aPacket, aRxPending, aError);
+            aInstance->mLinkRawTransmitDoneCallback = NULL;
+        }
+    }
+    else
+#endif // OPENTHREAD_ENABLE_RAW_LINK_API
+    {
+        aInstance->mThreadNetif.GetMac().TransmitDoneTask(aPacket, aRxPending, aError);
+    }
+
     otLogFuncExit();
 }
 
@@ -816,6 +845,10 @@ void Mac::TransmitDoneTask(RadioPacket *aPacket, bool aRxPending, ThreadError aE
         mCounters.mTxUnicast++;
     }
 
+    if (aError == kThreadError_Abort)
+    {
+        mCounters.mTxErrAbort++;
+    }
 
     if (!RadioSupportsRetriesAndCsmaBackoff() &&
         aError == kThreadError_ChannelAccessFailure &&
@@ -1064,7 +1097,7 @@ ThreadError Mac::ProcessReceiveSecurity(Frame &aFrame, const Address &aSrcAddr, 
     switch (keyIdMode)
     {
     case Frame::kKeyIdMode0:
-        VerifyOrExit((macKey = mKeyManager.GetKek()) != NULL, error = kThreadError_Security);
+        VerifyOrExit((macKey = mNetif.GetKeyManager().GetKek()) != NULL, error = kThreadError_Security);
         extAddress = &aSrcAddr.mExtAddress;
         break;
 
@@ -1074,23 +1107,23 @@ ThreadError Mac::ProcessReceiveSecurity(Frame &aFrame, const Address &aSrcAddr, 
         aFrame.GetKeyId(keyid);
         keyid--;
 
-        if (keyid == (mKeyManager.GetCurrentKeySequence() & 0x7f))
+        if (keyid == (mNetif.GetKeyManager().GetCurrentKeySequence() & 0x7f))
         {
             // same key index
-            keySequence = mKeyManager.GetCurrentKeySequence();
-            macKey = mKeyManager.GetCurrentMacKey();
+            keySequence = mNetif.GetKeyManager().GetCurrentKeySequence();
+            macKey = mNetif.GetKeyManager().GetCurrentMacKey();
         }
-        else if (keyid == ((mKeyManager.GetCurrentKeySequence() - 1) & 0x7f))
+        else if (keyid == ((mNetif.GetKeyManager().GetCurrentKeySequence() - 1) & 0x7f))
         {
             // previous key index
-            keySequence = mKeyManager.GetCurrentKeySequence() - 1;
-            macKey = mKeyManager.GetTemporaryMacKey(keySequence);
+            keySequence = mNetif.GetKeyManager().GetCurrentKeySequence() - 1;
+            macKey = mNetif.GetKeyManager().GetTemporaryMacKey(keySequence);
         }
-        else if (keyid == ((mKeyManager.GetCurrentKeySequence() + 1) & 0x7f))
+        else if (keyid == ((mNetif.GetKeyManager().GetCurrentKeySequence() + 1) & 0x7f))
         {
             // next key index
-            keySequence = mKeyManager.GetCurrentKeySequence() + 1;
-            macKey = mKeyManager.GetTemporaryMacKey(keySequence);
+            keySequence = mNetif.GetKeyManager().GetCurrentKeySequence() + 1;
+            macKey = mNetif.GetKeyManager().GetTemporaryMacKey(keySequence);
         }
         else
         {
@@ -1149,9 +1182,9 @@ ThreadError Mac::ProcessReceiveSecurity(Frame &aFrame, const Address &aSrcAddr, 
 
         aNeighbor->mValid.mLinkFrameCounter = frameCounter + 1;
 
-        if (keySequence > mKeyManager.GetCurrentKeySequence())
+        if (keySequence > mNetif.GetKeyManager().GetCurrentKeySequence())
         {
-            mKeyManager.SetCurrentKeySequence(keySequence);
+            mNetif.GetKeyManager().SetCurrentKeySequence(keySequence);
         }
     }
 
@@ -1164,7 +1197,22 @@ exit:
 extern "C" void otPlatRadioReceiveDone(otInstance *aInstance, RadioPacket *aFrame, ThreadError aError)
 {
     otLogFuncEntryMsg("%!otError!", aError);
-    aInstance->mThreadNetif.GetMac().ReceiveDoneTask(static_cast<Frame *>(aFrame), aError);
+
+#if OPENTHREAD_ENABLE_RAW_LINK_API
+
+    if (aInstance->mLinkRawEnabled)
+    {
+        if (aInstance->mLinkRawReceiveDoneCallback)
+        {
+            aInstance->mLinkRawReceiveDoneCallback(aInstance, aFrame, aError);
+        }
+    }
+    else
+#endif // OPENTHREAD_ENABLE_RAW_LINK_API
+    {
+        aInstance->mThreadNetif.GetMac().ReceiveDoneTask(static_cast<Frame *>(aFrame), aError);
+    }
+
     otLogFuncExit();
 }
 
@@ -1198,7 +1246,7 @@ void Mac::ReceiveDoneTask(Frame *aFrame, ThreadError aError)
     SuccessOrExit(error = aFrame->ValidatePsdu());
 
     aFrame->GetSrcAddr(srcaddr);
-    neighbor = mMle.GetNeighbor(srcaddr);
+    neighbor = mNetif.GetMle().GetNeighbor(srcaddr);
 
     switch (srcaddr.mLength)
     {

@@ -56,8 +56,6 @@ CFLAGS                         += \
 
 CXXFLAGS                       += \
     $(COMMONCFLAGS)               \
-    -fno-exceptions               \
-    -fno-rtti                     \
     $(NULL)
 
 LDFLAGS                        += \
@@ -89,6 +87,8 @@ configure_OPTIONS               = \
     --enable-diag                 \
     --with-examples=posix         \
     --with-platform-info=POSIX    \
+    --enable-commissioner         \
+    --enable-joiner
     $(NULL)
 
 ifeq ($(COVERAGE),1)

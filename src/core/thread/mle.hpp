@@ -426,6 +426,7 @@ public:
      * @param[in]  aScanChannels  A bit vector indicating which channels to scan.
      * @param[in]  aScanDuration  The time in milliseconds to spend scanning each channel.
      * @param[in]  aPanId         The PAN ID filter (set to Broadcast PAN to disable filter).
+     * @param[in]  aJoiner        Value of the Joiner Flag in the Discovery Request TLV.
      * @param[in]  aHandler       A pointer to a function that is called on receiving an MLE Discovery Response.
      * @param[in]  aContext       A pointer to arbitrary context information.
      *
@@ -433,7 +434,7 @@ public:
      * @retval kThreadError_Busy  Thread Discovery is already in progress.
      *
      */
-    ThreadError Discover(uint32_t aScanChannels, uint16_t aScanDuration, uint16_t aPanId,
+    ThreadError Discover(uint32_t aScanChannels, uint16_t aScanDuration, uint16_t aPanId, bool aJoiner,
                          DiscoverHandler aCallback, void *aContext);
 
     /**
@@ -772,6 +773,15 @@ public:
     void FillNetworkDataTlv(NetworkDataTlv &aTlv, bool aStableOnly);
 
 protected:
+
+    /**
+     * This method allocates a new message buffer for preparing an MLE message.
+     *
+     * @returns A pointer to the message or NULL if insufficient message buffers are available.
+     *
+     */
+    Message *NewMleMessage(void);
+
     /**
      * This method appends an MLE header to a message.
      *
@@ -1145,14 +1155,6 @@ protected:
     ThreadError SetStateChild(uint16_t aRloc16);
 
     /**
-     * This method returns a new MLE message.
-     *
-     * @returns A pointer to the message or NULL if no buffers are available.
-     *
-     */
-    Message *NewMessage(void) { return mSocket.NewMessage(0); };
-
-    /**
      * This method sets the Leader's Partition ID, Weighting, and Router ID values.
      *
      * @param[in]  aPartitionId     The Leader's Partition ID value.
@@ -1163,13 +1165,6 @@ protected:
     void SetLeaderData(uint32_t aPartitionId, uint8_t aWeighting, uint8_t aLeaderRouterId);
 
     ThreadNetif           &mNetif;            ///< The Thread Network Interface object.
-    AddressResolver       &mAddressResolver;  ///< The Address Resolver object.
-    KeyManager            &mKeyManager;       ///< The Key Manager object.
-    Mac::Mac              &mMac;              ///< The MAC object.
-    MeshForwarder         &mMesh;             ///< The Mesh Forwarding object.
-    MleRouter             &mMleRouter;        ///< The MLE Router object.
-    NetworkData::Leader   &mNetworkData;      ///< The Network Data object.
-    MeshCoP::JoinerRouter &mJoinerRouter;     ///< The Joiner Router object.
 
     LeaderDataTlv mLeaderData;              ///< Last received Leader Data TLV.
     bool mRetrieveNewNetworkData;           ///< Indicating new Network Data is needed if set.
@@ -1216,10 +1211,13 @@ protected:
     uint8_t mRouterSelectionJitter;         ///< The variable to save the assigned jitter value.
     uint8_t mRouterSelectionJitterTimeout;  ///< The Timeout prior to request/release Router ID.
 
+    uint8_t mLastPartitionRouterIdSequence;
+    uint32_t mLastPartitionId;
 private:
     enum
     {
         kAttachDataPollPeriod = OPENTHREAD_CONFIG_ATTACH_DATA_POLL_PERIOD,
+        kMleMessagePriority = Message::kPriorityHigh,
     };
 
     void GenerateNonce(const Mac::ExtAddress &aMacAddr, uint32_t aFrameCounter, uint8_t aSecurityLevel,
@@ -1243,12 +1241,14 @@ private:
                                      uint32_t aKeySequence);
     ThreadError HandleAnnounce(const Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
     ThreadError HandleDiscoveryResponse(const Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
+    ThreadError HandleLeaderData(const Message &aMessage, const Ip6::MessageInfo &aMessageInfo);
 
     ThreadError SendParentRequest(void);
     ThreadError SendChildIdRequest(void);
     void SendOrphanAnnounce(void);
 
     bool IsBetterParent(uint16_t aRloc16, uint8_t aLinkQuality, ConnectivityTlv &aConnectivityTlv) const;
+    void ResetParentCandidate(void);
 
     /**
      * This struct represents the device's own network information for persistent storage.
@@ -1286,6 +1286,8 @@ private:
     uint8_t mParentLinkQuality1;
     LeaderDataTlv mParentLeaderData;
     bool mParentIsSingleton;
+
+    Router mParentCandidate;
 
     Ip6::UdpSocket mSocket;
     uint32_t mTimeout;

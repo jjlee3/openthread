@@ -299,6 +299,12 @@ public:
     ThreadError SetPreferredRouterId(uint8_t aRouterId);
 
     /**
+     * This method gets the Partition Id which the device joined successfully once.
+     *
+     */
+    uint32_t GetPreviousPartitionId(void) const;
+
+    /**
      * This method sets the Partition Id which the device joins successfully.
      *
      * @param[in]  aPartitionId   The Partition Id.
@@ -322,7 +328,7 @@ public:
      * @returns A RLOC16 of the next hop if a route is known, kInvalidRloc16 otherwise.
      *
      */
-    uint16_t GetNextHop(uint16_t aDestination) const;
+    uint16_t GetNextHop(uint16_t aDestination);
 
     /**
      * This method returns the NETWORK_ID_TIMEOUT value.
@@ -746,7 +752,6 @@ private:
     ThreadError SendAddressRelease(void);
     void SendAddressSolicitResponse(const Coap::Header &aRequest, uint8_t aRouterId,
                                     const Ip6::MessageInfo &aMessageInfo);
-    void SendAddressReleaseResponse(const Coap::Header &aRequestHeader, const Ip6::MessageInfo &aMessageInfo);
     ThreadError SendAdvertisement(void);
     ThreadError SendLinkRequest(Neighbor *aNeighbor);
     ThreadError SendLinkAccept(const Ip6::MessageInfo &aMessageInfo, Neighbor *aNeighbor,
@@ -833,9 +838,6 @@ private:
     uint8_t mRouterId;
     uint8_t mPreviousRouterId;
     uint32_t mPreviousPartitionId;
-
-    Coap::Server &mCoapServer;
-    Coap::Client &mCoapClient;
 };
 
 }  // namespace Mle

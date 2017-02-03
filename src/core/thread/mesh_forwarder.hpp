@@ -183,6 +183,14 @@ public:
     void SetDiscoverParameters(uint32_t aScanChannels, uint16_t aScanDuration);
 
     /**
+     * This method frees any indirect messages queued for a specific child.
+     *
+     * @param[in]  aChild  A reference to a child whom messages shall be removed.
+     *
+     */
+    void ClearChildIndirectMessages(Child &aChild);
+
+    /**
      * This method frees any indirect messages queued for children that are no longer attached.
      *
      */
@@ -194,7 +202,7 @@ public:
      * @returns  A reference to the send queue.
      *
      */
-    const MessageQueue &GetSendQueue(void) const { return mSendQueue; }
+    const PriorityQueue &GetSendQueue(void) const { return mSendQueue; }
 
     /**
      * This method returns a reference to the reassembly queue.
@@ -237,6 +245,7 @@ private:
     ThreadError SendPoll(Message &aMessage, Mac::Frame &aFrame);
     ThreadError SendMesh(Message &aMessage, Mac::Frame &aFrame);
     ThreadError SendFragment(Message &aMessage, Mac::Frame &aFrame);
+    ThreadError SendEmptyFrame(Mac::Frame &aFrame);
     void UpdateFramePending(void);
     ThreadError UpdateIp6Route(Message &aMessage);
     ThreadError UpdateMeshRoute(Message &aMessage);
@@ -271,7 +280,7 @@ private:
     Timer mPollTimer;
     Timer mReassemblyTimer;
 
-    MessageQueue mSendQueue;
+    PriorityQueue mSendQueue;
     MessageQueue mReassemblyList;
     MessageQueue mResolvingQueue;
     uint16_t mFragTag;
@@ -295,14 +304,10 @@ private:
     uint16_t mScanDuration;
     uint8_t mScanChannel;
     uint8_t mRestoreChannel;
+    uint16_t mRestorePanId;
     bool mScanning;
 
     ThreadNetif &mNetif;
-    AddressResolver &mAddressResolver;
-    Lowpan::Lowpan &mLowpan;
-    Mac::Mac &mMac;
-    Mle::MleRouter &mMle;
-    NetworkData::Leader &mNetworkData;
 
     bool mSrcMatchEnabled;
 };
