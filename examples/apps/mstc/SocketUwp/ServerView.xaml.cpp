@@ -32,57 +32,66 @@ SocketUwp::ServerView::Listen_Click(
     Platform::Object^                   sender,
     Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-    auto serverName = ServerName->Text;
-
-    auto serverIP = ServerIP->Text;
-    if (serverIP->IsEmpty())
+    try
     {
-        throw ref new InvalidArgumentException(L"No Server IP");
-    }
+        auto serverName = ServerName->Text;
 
-    auto serverHostName = ref new HostName(serverIP);
-
-    auto serverPort = ServerPort->Text;
-    if (serverPort->IsEmpty())
-    {
-        serverPort = DEF_PORT.ToString();
-    }
-
-    using CoreApplication = Windows::ApplicationModel::Core::CoreApplication;
-    if (CoreApplication::Properties->HasKey("listenerContext"))
-    {
-        CoreApplication::Properties->Remove("listenerContext");
-    }
-    
-    IAppSocket^ listener = ref new AppDatagramSocket();
-    auto listenerContext = ref new ListenerContext(page_, listener, serverName);
-
-    using MessageHandler = IAppSocket::MessageHandler;
-    listener->MessageReceived += ref new MessageHandler(
-        listenerContext, &ListenerContext::OnMessage);
-
-    // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be
-    // deleted. This would render any event hooked up to the object ineffective. The ListenerContext guarantees that
-    // both the listener and object that serves its events have the same lifetime.
-    CoreApplication::Properties->Insert("listenerContext", listenerContext);
-
-    create_task(listener->BindEndpointAsync(serverHostName, serverPort)).then(
-        [this, serverHostName](task<void> prevTask)
-    {
-        try
+        auto serverIP = ServerIP->Text;
+        if (serverIP->IsEmpty())
         {
-            // Try getting an exception.
-            prevTask.get();
-            page_->NotifyFromAsyncThread(
-                "Listening on address " + serverHostName->CanonicalName,
-                NotifyType::Status);
+            throw ref new InvalidArgumentException(L"No Server IP");
         }
-        catch (Exception^ ex)
+
+        auto serverHostName = ref new HostName(serverIP);
+
+        auto serverPort = ServerPort->Text;
+        if (serverPort->IsEmpty())
+        {
+            serverPort = DEF_PORT.ToString();
+        }
+
+        using CoreApplication = Windows::ApplicationModel::Core::CoreApplication;
+        if (CoreApplication::Properties->HasKey("listenerContext"))
         {
             CoreApplication::Properties->Remove("listenerContext");
-            page_->NotifyFromAsyncThread(
-                "Start listening failed with error: " + ex->Message,
-                NotifyType::Error);
         }
-    });
+    
+        IAppSocket^ listener = ref new AppDatagramSocket();
+        auto listenerContext = ref new ListenerContext(page_, listener, serverName);
+
+        using MessageHandler = IAppSocket::MessageHandler;
+        listener->MessageReceived += ref new MessageHandler(
+            listenerContext, &ListenerContext::OnMessage);
+
+        // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be
+        // deleted. This would render any event hooked up to the object ineffective. The ListenerContext guarantees that
+        // both the listener and object that serves its events have the same lifetime.
+        CoreApplication::Properties->Insert("listenerContext", listenerContext);
+
+        create_task(listener->BindEndpointAsync(serverHostName, serverPort)).then(
+            [this, serverHostName](task<void> prevTask)
+        {
+            try
+            {
+                // Try getting an exception.
+                prevTask.get();
+                page_->NotifyFromAsyncThread(
+                    "Listening on address " + serverHostName->CanonicalName,
+                    NotifyType::Status);
+            }
+            catch (Exception^ ex)
+            {
+                CoreApplication::Properties->Remove("listenerContext");
+                page_->NotifyFromAsyncThread(
+                    "Start listening failed with error: " + ex->Message,
+                    NotifyType::Error);
+            }
+        });
+    }
+    catch (Exception^ ex)
+    {
+        page_->NotifyFromAsyncThread(
+            "Listening failed with input error: " + ex->Message,
+            NotifyType::Error);
+    }
 }

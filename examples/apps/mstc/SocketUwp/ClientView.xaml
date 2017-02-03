@@ -17,7 +17,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -45,12 +47,15 @@
         <TextBox
             Grid.Row="6" Grid.Column="2" x:Name="ClientPort" Width="75" Text="51100"
             HorizontalAlignment="Left"/>
-        <TextBlock
-            Grid.Row="8" Grid.Column="0" Text="Input :"/>
-        <TextBox
-            Grid.Row="8" Grid.Column="2" x:Name="Input" MinWidth="300"/>
         <Button
-            Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="3" Content="Send"
+            Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Connect"
+            HorizontalAlignment="Center" Click="Connect_Click"/>
+        <TextBlock
+            Grid.Row="10" Grid.Column="0" Text="Input :"/>
+        <TextBox
+            Grid.Row="10" Grid.Column="2" x:Name="Input" MinWidth="300"/>
+        <Button
+            Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Send"
             HorizontalAlignment="Center" Click="Send_Click"/>
     </Grid>
 </UserControl>

@@ -36,6 +36,8 @@ namespace SocketUwp
         void Init(IAsyncThreadPage^ page);
 
     private:
+        void Connect_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+
         void Send_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 
         IAsyncThreadPage^ page_;

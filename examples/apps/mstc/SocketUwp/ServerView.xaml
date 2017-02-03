@@ -44,7 +44,7 @@
         <TextBlock
             Grid.Row="6" Grid.Column="2" x:Name="Result" MinWidth="300"/>
         <Button
-            Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Content="Listen"
+            Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Listen"
             HorizontalAlignment="Center" Click="Listen_Click"/>
     </Grid>
 </UserControl>
