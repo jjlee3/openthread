@@ -2,7 +2,7 @@
 #include "AppDatagramSocket.h"
 
 SocketUwp::AppDatagramSocket::AppDatagramSocket() :
-    sock_(ref new DatagramSocket())
+    sock_{ ref new DatagramSocket() }
 {
     sock_->MessageReceived += ref new DatagramSocketMessageHandler(
         this, &AppDatagramSocket::OnMessage);
@@ -39,12 +39,14 @@ SocketUwp::AppDatagramSocket::ConnectAsync(
     return sock_->ConnectAsync(remoteHostName, remoteService);
 }
 
-void SocketUwp::AppDatagramSocket::SetConnected()
+void
+SocketUwp::AppDatagramSocket::SetConnected()
 {
     connected_ = true;
 }
 
-bool SocketUwp::AppDatagramSocket::IsConnected()
+bool
+SocketUwp::AppDatagramSocket::IsConnected()
 {
     return connected_;
 }

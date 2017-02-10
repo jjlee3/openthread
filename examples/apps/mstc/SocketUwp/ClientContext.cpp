@@ -23,19 +23,22 @@ SocketUwp::ClientContext::~ClientContext()
     // will not be able to use the port. Thus, it is strongly recommended that DatagramSocket instances be explicitly
     // closed before they go out of scope(e.g., before application exit). The call below explicitly closes the socket.
 
-    delete client_;
-    client_ = nullptr;
+    if (client_ != nullptr)
+    {
+        delete client_;
+        client_ = nullptr;
+    }
 }
 
 Windows::Storage::Streams::DataWriter^
-SocketUwp::ClientContext::GetWriter()
+SocketUwp::ClientContext::GetDataWriter()
 {
-    if (writer_ == nullptr)
+    if (dataWriter_ == nullptr)
     {
-        writer_ = ref new DataWriter(client_->OutputStream);
+        dataWriter_ = ref new DataWriter(client_->OutputStream);
     }
 
-    return writer_;
+    return dataWriter_;
 }
 
 void
@@ -48,7 +51,7 @@ SocketUwp::ClientContext::SendMessage(
         return;
     }
 
-    auto writer = GetWriter();
+    auto writer = GetDataWriter();
 
     try
     {

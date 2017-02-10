@@ -41,10 +41,5 @@ namespace SocketUwp
         void Send_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 
         IAsyncThreadPage^ page_;
-        HostName^         serverHostName_;
-        Service^          serverPort_;
-        HostName^         clientHostName_;
-        Service^          clientPort_;
-        String^           input_;
     };
 }

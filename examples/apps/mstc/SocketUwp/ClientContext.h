@@ -17,7 +17,7 @@ namespace SocketUwp
         ClientContext(IAsyncThreadPage^ page, IAppSocket^ client);
         virtual ~ClientContext();
 
-        DataWriter^ GetWriter();
+        DataWriter^ GetDataWriter();
 
         void SendMessage(String^ msg);
 
@@ -26,6 +26,6 @@ namespace SocketUwp
     private:
         IAsyncThreadPage^ page_;
         IAppSocket^       client_;
-        DataWriter^       writer_;
+        DataWriter^       dataWriter_;
     };
 }

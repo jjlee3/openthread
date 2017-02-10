@@ -23,7 +23,6 @@ namespace SocketUwp
         IAsyncAction^ ConnectAsync(HostName^ remoteHostName, Service^ remoteService);
 
         void SetConnected();
-
         bool IsConnected();
 
         IAsyncOutputStream^ GetOutputStreamAsync(HostName^ remoteHostName, Service^ remoteService);

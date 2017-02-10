@@ -37,7 +37,5 @@ namespace SocketUwp
         void Listen_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 
         IAsyncThreadPage^ page_;
-        HostName^         hostName_;
-        Service^          serviceName_;
     };
 }

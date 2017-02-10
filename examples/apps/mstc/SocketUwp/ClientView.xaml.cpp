@@ -41,12 +41,12 @@ SocketUwp::ClientView::Connect_Click(
             throw ref new InvalidArgumentException(L"No Server IP");
         }
 
-        serverHostName_ = ref new HostName(serverIP);
+        auto serverHostName = ref new HostName(serverIP);
 
-        serverPort_ = ServerPort->Text;
-        if (serverPort_->IsEmpty())
+        auto serverPort = ServerPort->Text;
+        if (serverPort->IsEmpty())
         {
-            serverPort_ = DEF_SERVER_PORT.ToString();
+            serverPort = DEF_SERVER_PORT.ToString();
         }
 
         auto clientIP = ClientIP->Text;
@@ -55,12 +55,12 @@ SocketUwp::ClientView::Connect_Click(
             throw ref new InvalidArgumentException(L"No Cient IP");
         }
 
-        clientHostName_ = ref new HostName(clientIP);
+        auto clientHostName = ref new HostName(clientIP);
 
-        clientPort_ = ClientPort->Text;
-        if (clientPort_->IsEmpty())
+        auto clientPort = ClientPort->Text;
+        if (clientPort->IsEmpty())
         {
-            clientPort_ = DEF_PORT.ToString();
+            clientPort = DEF_PORT.ToString();
         }
 
         using CoreApplication = Windows::ApplicationModel::Core::CoreApplication;
@@ -81,19 +81,19 @@ SocketUwp::ClientView::Connect_Click(
         // both the socket and object that serves its events have the same lifetime.
         CoreApplication::Properties->Insert("clientContext", clientContext);
 
-        auto endpointPair = ref new EndpointPair(clientHostName_, clientPort_,
-            serverHostName_, serverPort_);
+        auto endpointPair = ref new EndpointPair(clientHostName, clientPort,
+            serverHostName, serverPort);
 
         create_task(client->ConnectAsync(endpointPair)).then(
-            [this, client, clientContext](task<void> prevTask)
+            [this, client, endpointPair](task<void> prevTask)
         {
             try
             {
                 // Try getting an exception.
                 prevTask.get();
                 page_->NotifyFromAsyncThread(
-                    "Connect from " + clientHostName_->CanonicalName +
-                    " to " + serverHostName_->CanonicalName,
+                    "Connect from " + endpointPair->LocalHostName->CanonicalName +
+                    " to " + endpointPair->RemoteHostName->CanonicalName,
                     NotifyType::Status);
                 client->SetConnected();
             }
@@ -121,8 +121,8 @@ SocketUwp::ClientView::Send_Click(
 {
     try
     {
-        input_ = Input->Text;
-        if (input_->IsEmpty())
+        auto input = Input->Text;
+        if (input->IsEmpty())
         {
             throw ref new InvalidArgumentException(L"No Input");
         }
@@ -140,7 +140,7 @@ SocketUwp::ClientView::Send_Click(
             throw ref new FailureException(L"No clientContext");
         }
 
-        clientContext->SendMessage(input_);
+        clientContext->SendMessage(input);
     }
     catch (Exception^ ex)
     {

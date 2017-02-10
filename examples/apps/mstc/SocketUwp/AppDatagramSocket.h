@@ -27,7 +27,6 @@ namespace SocketUwp
         virtual IAsyncAction^ ConnectAsync(HostName^ remoteHostName, Service^ remoteService);
 
         virtual void SetConnected();
-
         virtual bool IsConnected();
 
         virtual IAsyncOutputStream^ GetOutputStreamAsync(HostName^ remoteHostName, Service^ remoteService);
