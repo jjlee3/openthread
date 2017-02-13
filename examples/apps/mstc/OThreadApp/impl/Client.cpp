@@ -87,7 +87,7 @@ Client::threadMain(
         using milliseconds = std::chrono::milliseconds;
 
 #ifdef SOCK_TCP
-        sock_.connect(&options.listenerAddr_, sizeof(options.listenerAddr_));
+        sock_.connect(&options.serverAddr_, sizeof(options.serverAddr_));
 #else
         sockaddr_in6 listenerAddr = options.serverAddr_;
         int          listenerLen  = sizeof(listenerAddr);
