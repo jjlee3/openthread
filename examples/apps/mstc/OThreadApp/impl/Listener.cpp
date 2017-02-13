@@ -55,7 +55,6 @@ Listener::accept(int msTimeout)
 {
     const auto& timeslice = timeval{ 0, usPollingTIME };
 
-    using socket_list = std::list<socket_t>;
     using buffer_t = std::vector<char>;
     using buffer_map = std::map<SOCKET, buffer_t>;
     using milliseconds = std::chrono::milliseconds;
@@ -63,7 +62,6 @@ Listener::accept(int msTimeout)
     auto        beginTime = std::chrono::steady_clock::now();
     auto        sock = static_cast<SOCKET>(sock_);
     fd_set      fds;
-    socket_list socksMightBe;
     buffer_map  buffers;
     sockets_t   socks;
 
@@ -76,7 +74,7 @@ Listener::accept(int msTimeout)
 
         FD_ZERO(&fds);
         FD_SET(sock, &fds);
-        for (const auto& i : socksMightBe)
+        for (const auto& i : socksMightBe_)
         {
             FD_SET(static_cast<SOCKET>(i), &fds);
         }
@@ -108,15 +106,15 @@ Listener::accept(int msTimeout)
                     os << __LOCA__ " socket accepted " <<
                         static_cast<SOCKET>(sockAccepted) << std::endl;
                 });
-                socksMightBe.push_back(std::move(sockAccepted));
+                socksMightBe_.push_back(std::move(sockAccepted));
             }
         }
 
-        auto it = socksMightBe.begin();
-        auto ie = socksMightBe.end();
+        auto it = socksMightBe_.begin();
+        auto ie = socksMightBe_.end();
         decltype(ie) eit;
 
-        for (; it != ie; ++it, (eit != ie) ? socksMightBe.erase(eit) : ie)
+        for (; it != ie; ++it, (eit != ie) ? socksMightBe_.erase(eit) : ie)
         {
             eit = ie;
             auto s = static_cast<SOCKET>(*it);
@@ -215,7 +213,7 @@ Listener::accept(int msTimeout)
             eit = it;
         }
 
-        if (!socks.empty() && socksMightBe.empty()) { break; }
+        if (!socks.empty() && socksMightBe_.empty()) { break; }
     }
 
     return socks;

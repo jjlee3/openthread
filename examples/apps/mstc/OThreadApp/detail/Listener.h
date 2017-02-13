@@ -27,6 +27,7 @@ protected:
     using thread_uptr     = std::unique_ptr<thread_t>;
     using thread_csptr    = thread_uptr;
     using socket_t        = mstc::network::Ipv6;
+    using socket_list     = std::list<socket_t>;
     using sockets_t       = std::vector<socket_t>;
     using left_clients    = Clients::left_clients;
     using protect_clients = mstc::base::Protector<left_clients>;
@@ -37,7 +38,8 @@ protected:
 
     thread_csptr    thrd_;
     bool            stopping_ = true;
-    socket_t        sock_;
+    socket_t        sock_; // listener
+    socket_list     socksMightBe_;
     Clients         clients_;
     protect_clients leftClients_;
 };
