@@ -16,12 +16,12 @@ namespace SocketUwp
 	public ref class MainPage sealed : public IAsyncThreadPage
 	{
 	public:
-		MainPage();
-
         property static unsigned int ROLE_POS
         {
             unsigned int get() { return 1; }
         }
+
+        MainPage();
 
         virtual void NotifyFromAsyncThread(Platform::String^ message, NotifyType type);
 
