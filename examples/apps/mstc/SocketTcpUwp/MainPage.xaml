@@ -12,11 +12,11 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <StackPanel x:Name="RolePanel" Orientation="Vertical" Margin="20,20">
             <StackPanel
-                Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,0,20">
+                Orientation="Horizontal" VerticalAlignment="Top"
+                Margin="0,0,0,20">
                 <RadioButton
                     x:Name="ServerRadio" Content="Server"
                     GroupName="RoleGroup" Checked="Role_Changed"
@@ -27,12 +27,13 @@
                     Margin="0,0,20,0"/>
             </StackPanel>
         </StackPanel>
-        <Border x:Name="StatusBorder" Grid.Row="2" Margin="20,20">
+        <Border x:Name="StatusBorder" Grid.Row="2" Margin="20,0,20,20">
             <TextBlock x:Name="StatusBlock"
                        FontWeight="Bold"
                        Text=" "
                        FontSize="16"
-                       TextWrapping="NoWrap"/>
+                       TextWrapping="Wrap"
+                       MaxHeight="80"/>
         </Border>
     </Grid>
 </Page>

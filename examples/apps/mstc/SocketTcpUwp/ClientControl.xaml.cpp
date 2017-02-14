@@ -10,6 +10,7 @@
 
 using namespace Concurrency;
 using namespace Platform;
+using namespace Windows::ApplicationModel::Core;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -60,7 +61,6 @@ SocketTcpUwp::ClientControl::Connect_Click(
             clientPort = DEF_PORT.ToString();
         }
 
-        using CoreApplication = Windows::ApplicationModel::Core::CoreApplication;
         if (CoreApplication::Properties->HasKey("clientContext"))
         {
             CoreApplication::Properties->Remove("clientContext");
@@ -97,13 +97,22 @@ SocketTcpUwp::ClientControl::Connect_Click(
                     "Start binding failed with error: " + ex->Message,
                     NotifyType::Error);
             }
+            catch (task_canceled&)
+            {
+                CoreApplication::Properties->Remove("clientContext");
+            }
         });
     }
     catch (Exception^ ex)
     {
+        CoreApplication::Properties->Remove("clientContext");
         page_->NotifyFromAsyncThread(
             "Connecting failed with input error: " + ex->Message,
             NotifyType::Error);
+    }
+    catch (task_canceled&)
+    {
+        CoreApplication::Properties->Remove("clientContext");
     }
 }
 

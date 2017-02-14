@@ -13,15 +13,13 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="20"/>
         </Grid.ColumnDefinitions>
         <TextBlock
             Grid.Row="0" Grid.Column="0" Text="Server Name :"/>
@@ -39,6 +37,6 @@
             HorizontalAlignment="Left"/>
         <Button
             Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Listen"
-            HorizontalAlignment="Center" Click="Listen_Click"/>
+            Click="Listen_Click"/>
     </Grid>
 </UserControl>
