@@ -140,6 +140,7 @@
     <ClInclude Include="ClientControl.xaml.h">
       <DependentUpon>ClientControl.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="Consts.h" />
     <ClInclude Include="IAsyncThreadPage.h" />
     <ClInclude Include="ListenerContext.h" />
     <ClInclude Include="pch.h" />
