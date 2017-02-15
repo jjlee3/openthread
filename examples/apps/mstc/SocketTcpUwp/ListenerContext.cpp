@@ -25,8 +25,8 @@ SocketTcpUwp::ListenerContext::~ListenerContext()
 
 void
 SocketTcpUwp::ListenerContext::OnConnection(
-    StreamSocketListener^        listener,
-    ConnectionReceivedEventArgs^ args)
+    StreamSocketListener^          listener,
+    SsConnectionReceivedEventArgs^ args)
 {
     auto dataReader = ref new DataReader(args->Socket->InputStream);
     auto dataWriter = ref new DataWriter(args->Socket->OutputStream);
@@ -63,29 +63,19 @@ SocketTcpUwp::ListenerContext::ReceiveLoop(
             auto msg = dataReader->ReadString(actualStringLength);
 
             wchar_t buf[256];
-            auto len = swprintf_s(buf, L" server receive \"%s\" from client", msg->Data());
-            auto received = ref new String(buf);
-            // Display the string on the screen. This thread is invoked on non-UI thread, so we need to marshal the 
-            // call back to the UI thread.
-            page_->NotifyFromAsyncThread(received, NotifyType::Status);
+            auto len = swprintf_s(buf, L"server%s receive \"%s\" from client",
+                serverName_->IsEmpty() ? L"" : (" " + serverName_)->Data(), msg->Data());
+            auto display = ref new String(buf);
+            page_->NotifyFromAsyncThread(display, NotifyType::Status);
 
-            if (serverName_->IsEmpty())
-            {
-                swprintf_s(&buf[len], _countof(buf) - len, L" - server got %d chars",
-                    msg->Length());
-            }
-            else
-            {
-                swprintf_s(&buf[len], _countof(buf) - len, L" - server %s got %d chars",
-                    serverName_->Data(), msg->Length());
-            }
+            len += swprintf_s(&buf[len], _countof(buf) - len, L" - got %d chars",
+                msg->Length());
             auto echo = ref new String(buf);
 
             try
             {
                 dataWriter->WriteUInt32(echo->Length());
                 dataWriter->WriteString(echo);
-                page_->NotifyFromAsyncThread("Echoing - " + echo, NotifyType::Status);
             }
             catch (Exception^ ex)
             {
@@ -93,7 +83,7 @@ SocketTcpUwp::ListenerContext::ReceiveLoop(
             }
 
             create_task(dataWriter->StoreAsync()).then(
-                [this, socket, echo](task<unsigned int> writeTask)
+                [this](task<unsigned int> writeTask)
             {
                 try
                 {

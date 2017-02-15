@@ -17,14 +17,13 @@ using namespace Windows::UI::Xaml::Media;
 SocketTcpUwp::MainPage::MainPage()
 {
 	InitializeComponent();
-
     ServerRadio->IsChecked = true;
 }
 
 void
 SocketTcpUwp::MainPage::NotifyFromAsyncThread(
-    Platform::String^ message,
-    NotifyType        type)
+    String^    message,
+    NotifyType type)
 {
     Dispatcher->RunAsync(CoreDispatcherPriority::Normal,
         ref new DispatchedHandler([this, message, type]()
@@ -35,16 +34,16 @@ SocketTcpUwp::MainPage::NotifyFromAsyncThread(
 
 void
 SocketTcpUwp::MainPage::Notify(
-    Platform::String^ message,
-    NotifyType        type)
+    String^    message,
+    NotifyType type)
 {
     switch (type)
     {
     case NotifyType::Status:
-        StatusBorder->Background = ref new SolidColorBrush(Windows::UI::Colors::Green);
+        StatusBorder->Background = ref new SolidColorBrush(Colors::Green);
         break;
     case NotifyType::Error:
-        StatusBorder->Background = ref new SolidColorBrush(Windows::UI::Colors::Red);
+        StatusBorder->Background = ref new SolidColorBrush(Colors::Red);
         break;
     default:
         break;
@@ -65,8 +64,8 @@ SocketTcpUwp::MainPage::Notify(
 
 void
 SocketTcpUwp::MainPage::Role_Changed(
-    Platform::Object^                   sender,
-    Windows::UI::Xaml::RoutedEventArgs^ e)
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
     auto radioBtn = dynamic_cast<RadioButton^>(sender);
     if (!radioBtn) { return; }
@@ -86,18 +85,20 @@ SocketTcpUwp::MainPage::Role_Changed(
         ctrl = clientCtrl;
     }
 
-    auto role = RolePanel->Children->GetAt(ROLE_POS);
-    if (role)
+    // remove an old control (client or server)
+    if (roleCtrlIndex_ >= 0)
     {
-    }
-    else if (RolePanel->Children->Size <= ROLE_POS)
-    {
-        RolePanel->Children->Append(ctrl);
-        return;
-    }
-    else
-    {
+        MainPageGrid->Children->RemoveAt(roleCtrlIndex_);
     }
 
-    RolePanel->Children->SetAt(ROLE_POS, ctrl);
+    // add a new control (client or server)
+    Grid::SetRow(ctrl, ROLE_POS_ROW);
+    Grid::SetColumn(ctrl, ROLE_POS_COL);
+    MainPageGrid->Children->Append(ctrl);
+
+    // record the new contol index
+    // to be removed at next time
+    unsigned int index = -1;
+    auto ok = MainPageGrid->Children->IndexOf(ctrl, &index);
+    if (ok) { roleCtrlIndex_ = index; }
 }

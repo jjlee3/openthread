@@ -13,7 +13,7 @@ namespace SocketTcpUwp
     public:
         ListenerContext(IAsyncThreadPage^ page, StreamSocketListener^ listener, String^ serverName);
 
-        void OnConnection(StreamSocketListener^ listener, ConnectionReceivedEventArgs^ args);
+        void OnConnection(StreamSocketListener^ listener, SsConnectionReceivedEventArgs^ args);
 
     private:
         ~ListenerContext();

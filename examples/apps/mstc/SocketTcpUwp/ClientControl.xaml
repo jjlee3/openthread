@@ -34,7 +34,7 @@
         <TextBlock
             Grid.Row="2" Grid.Column="0" Text="Server Port :"/>
         <TextBox
-            Grid.Row="2" Grid.Column="2" x:Name="ServerPort" Width="75"  Text="51000"
+            Grid.Row="2" Grid.Column="2" x:Name="ServerPort" Width="75"
             HorizontalAlignment="Left"/>
         <TextBlock
             Grid.Row="4" Grid.Column="0" Text="Client IP :"/>
@@ -43,7 +43,7 @@
         <TextBlock
             Grid.Row="6" Grid.Column="0" Text="Client Port :"/>
         <TextBox
-            Grid.Row="6" Grid.Column="2" x:Name="ClientPort" Width="75" Text="51100"
+            Grid.Row="6" Grid.Column="2" x:Name="ClientPort" Width="75"
             HorizontalAlignment="Left"/>
         <Button
             Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Connect"

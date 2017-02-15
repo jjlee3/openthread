@@ -5,11 +5,9 @@
 
 #include "pch.h"
 #include "ServerControl.xaml.h"
-#include "Types.h"
 #include "ListenerContext.h"
 
 using namespace Concurrency;
-using namespace Platform;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -28,8 +26,8 @@ SocketTcpUwp::ServerControl::Init(
 
 void
 SocketTcpUwp::ServerControl::Listen_Click(
-    Platform::Object^                   sender,
-    Windows::UI::Xaml::RoutedEventArgs^ e)
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
     try
     {
@@ -58,7 +56,7 @@ SocketTcpUwp::ServerControl::Listen_Click(
         auto listener = ref new StreamSocketListener();
         auto listenerContext = ref new ListenerContext(page_, listener, serverName);
 
-        listener->ConnectionReceived += ref new ConnectionHandler(
+        listener->ConnectionReceived += ref new SsConnectionHandler(
             listenerContext, &ListenerContext::OnConnection);
 
         // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be

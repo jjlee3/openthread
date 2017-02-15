@@ -7,6 +7,7 @@
 
 #include "ServerControl.g.h"
 #include "Consts.h"
+#include "Types.h"
 #include "IAsyncThreadPage.h"
 
 namespace SocketTcpUwp
@@ -17,17 +18,14 @@ namespace SocketTcpUwp
     public ref class ServerControl sealed
 	{
     public:
-        property static unsigned short DEF_PORT
-        {
-            unsigned short get() { return Consts::DEF_SERVER_PORT; }
-        }
-
         ServerControl();
 
         void Init(IAsyncThreadPage^ page);
 
     private:
-        void Listen_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+        static constexpr unsigned short DEF_PORT = Consts::DEF_SERVER_PORT;
+
+        void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
         IAsyncThreadPage^ page_;
     };

@@ -118,12 +118,9 @@ SocketTcpUwp::ClientContext::ReceiveLoop(
 
             auto msg = dataReader->ReadString(actualStringLength);
 
-            wchar_t buf[256];
-            auto len = swprintf_s(buf, L" Received data \"%s\" from server", msg->Data());
-            auto received = ref new String(buf);
-            // Display the string on the screen. This thread is invoked on non-UI thread, so we need to marshal the 
-            // call back to the UI thread.
-            page_->NotifyFromAsyncThread(received, NotifyType::Status);
+            page_->NotifyFromAsyncThread(
+                "Received data from server peer: \"" + msg + "\"",
+                NotifyType::Status);
         });
     }).then([this, socket, dataReader](task<void> previousTask)
     {

@@ -5,7 +5,6 @@
 
 #include "pch.h"
 #include "ClientControl.xaml.h"
-#include "Types.h"
 #include "ClientContext.h"
 
 using namespace Concurrency;
@@ -17,6 +16,8 @@ using namespace Windows::ApplicationModel::Core;
 SocketTcpUwp::ClientControl::ClientControl()
 {
 	InitializeComponent();
+    ServerPort->Text = DEF_SERVER_PORT.ToString();
+    ClientPort->Text = DEF_PORT.ToString();
 }
 
 void
@@ -28,8 +29,8 @@ SocketTcpUwp::ClientControl::Init(
 
 void
 SocketTcpUwp::ClientControl::Connect_Click(
-    Platform::Object^                   sender,
-    Windows::UI::Xaml::RoutedEventArgs^ e)
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
     try
     {
