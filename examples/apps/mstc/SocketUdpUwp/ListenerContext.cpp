@@ -69,10 +69,14 @@ SocketUdpUwp::ListenerContext::OnMessage(
             // Try getting all exceptions from the continuation chain above this point.
             prevTask.get();
         }
-        catch (Exception^ e)
+        catch (Exception^ ex)
         {
-            page_->NotifyFromAsyncThread("On message with an error: " + e->Message,
+            page_->NotifyFromAsyncThread("On message with an error: " + ex->Message,
                 NotifyType::Error);
+        }
+        catch (task_canceled&)
+        {
+            // Do not print anything here - this will usually happen because user closed the client socket.
         }
     });
 }
@@ -87,11 +91,6 @@ SocketUdpUwp::ListenerContext::EchoMessage(
 
     auto msg = dataReader->ReadString(strLen);
 
-    /*
-    std::wstring serverName;
-    if (!serverName_->IsEmpty()) { serverName += std::wstring(L" ") + serverName_->Data(); }
-    */
-
     wchar_t buf[256];
     auto len = swprintf_s(buf, L"server%s receive \"%s\" from client",
         serverName_->IsEmpty() ? L"" : (" " + serverName_)->Data(), msg->Data());
@@ -103,7 +102,15 @@ SocketUdpUwp::ListenerContext::EchoMessage(
     auto echo = ref new String(buf);
 
     auto dataWriter = ref new DataWriter(outputStream_);
-    dataWriter->WriteString(echo);
+
+    try
+    {
+        dataWriter->WriteString(echo);
+    }
+    catch (Exception^ ex)
+    {
+        page_->NotifyFromAsyncThread("Echoing failed with error: " + ex->Message, NotifyType::Error);
+    }
 
     create_task(dataWriter->StoreAsync()).then(
         [this](task<unsigned int> writeTask)
@@ -113,9 +120,9 @@ SocketUdpUwp::ListenerContext::EchoMessage(
             // Try getting all exceptions from the continuation chain above this point.
             writeTask.get();
         }
-        catch (Exception^ e)
+        catch (Exception^ ex)
         {
-            page_->NotifyFromAsyncThread("Echoing message with an error: " + e->Message,
+            page_->NotifyFromAsyncThread("Echo message with an error: " + ex->Message,
                 NotifyType::Error);
         }
     });

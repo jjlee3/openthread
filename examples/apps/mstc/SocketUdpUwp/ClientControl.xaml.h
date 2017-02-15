@@ -6,7 +6,7 @@
 #pragma once
 
 #include "ClientControl.g.h"
-#include "Constsh.h"
+#include "Consts.h"
 #include "Types.h"
 #include "IAsyncThreadPage.h"
 
@@ -29,7 +29,6 @@ namespace SocketUdpUwp
         void Connect_Click(Object^ sender, RoutedEventArgs^ e);
 
         void Send_Click(Object^ sender, RoutedEventArgs^ e);
-
 
         IAsyncThreadPage^ page_;
     };

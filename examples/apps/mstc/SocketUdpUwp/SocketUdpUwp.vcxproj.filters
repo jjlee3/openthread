@@ -18,6 +18,8 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="ListenerContext.cpp" />
     <ClCompile Include="ClientContext.cpp" />
+    <ClCompile Include="ClientControl.xaml.cpp" />
+    <ClCompile Include="ServerControl.xaml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -25,9 +27,11 @@
     <ClInclude Include="MainPage.xaml.h" />
     <ClInclude Include="IAsyncThreadPage.h" />
     <ClInclude Include="Types.h" />
-    <ClInclude Include="Constsh.h" />
     <ClInclude Include="ListenerContext.h" />
     <ClInclude Include="ClientContext.h" />
+    <ClInclude Include="ClientControl.xaml.h" />
+    <ClInclude Include="ServerControl.xaml.h" />
+    <ClInclude Include="Consts.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">

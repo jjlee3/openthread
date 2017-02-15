@@ -100,6 +100,10 @@ SocketUdpUwp::ClientControl::Connect_Click(
                     "Start binding failed with error: " + ex->Message,
                     NotifyType::Error);
             }
+            catch (task_canceled&)
+            {
+                CoreApplication::Properties->Remove("clientContext");
+            }
         });
     }
     catch (Exception^ ex)
@@ -107,6 +111,10 @@ SocketUdpUwp::ClientControl::Connect_Click(
         page_->NotifyFromAsyncThread(
             "Connecting failed with input error: " + ex->Message,
             NotifyType::Error);
+    }
+    catch (task_canceled&)
+    {
+        CoreApplication::Properties->Remove("clientContext");
     }
 }
 
