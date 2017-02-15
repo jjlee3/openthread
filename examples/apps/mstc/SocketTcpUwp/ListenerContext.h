@@ -20,6 +20,8 @@ namespace SocketTcpUwp
 
         void ReceiveLoop(StreamSocket^, DataReader^, DataWriter^);
 
+        void EchoMessage(DataReader^, DataWriter^);
+
         IAsyncThreadPage^     page_;
         StreamSocketListener^ listener_;
         String^               serverName_;

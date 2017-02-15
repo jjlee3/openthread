@@ -60,42 +60,7 @@ SocketTcpUwp::ListenerContext::ReceiveLoop(
                 cancel_current_task();
             }
 
-            auto msg = dataReader->ReadString(actualStringLength);
-
-            wchar_t buf[256];
-            auto len = swprintf_s(buf, L"server%s receive \"%s\" from client",
-                serverName_->IsEmpty() ? L"" : (" " + serverName_)->Data(), msg->Data());
-            auto display = ref new String(buf);
-            page_->NotifyFromAsyncThread(display, NotifyType::Status);
-
-            len += swprintf_s(&buf[len], _countof(buf) - len, L" - got %d chars",
-                msg->Length());
-            auto echo = ref new String(buf);
-
-            try
-            {
-                dataWriter->WriteUInt32(echo->Length());
-                dataWriter->WriteString(echo);
-            }
-            catch (Exception^ ex)
-            {
-                page_->NotifyFromAsyncThread("Echoing failed with error: " + ex->Message, NotifyType::Error);
-            }
-
-            create_task(dataWriter->StoreAsync()).then(
-                [this](task<unsigned int> writeTask)
-            {
-                try
-                {
-                    // Try getting all exceptions from the continuation chain above this point.
-                    writeTask.get();
-                }
-                catch (Exception^ ex)
-                {
-                    page_->NotifyFromAsyncThread("Echo message with an error: " + ex->Message,
-                        NotifyType::Error);
-                }
-            });
+            EchoMessage(dataReader, dataWriter);
         });
     }).then([this, socket, dataReader, dataWriter](task<void> previousTask)
     {
@@ -122,6 +87,52 @@ SocketTcpUwp::ListenerContext::ReceiveLoop(
 
             // Explicitly close the socket.
             delete socket;
+        }
+    });
+}
+
+void
+SocketTcpUwp::ListenerContext::EchoMessage(
+    DataReader^ dataReader,
+    DataWriter^ dataWriter)
+{
+    auto strLen = static_cast<unsigned int>(dataReader->UnconsumedBufferLength);
+    if (!strLen) { return; }
+
+    auto msg = dataReader->ReadString(strLen);
+
+    wchar_t buf[256];
+    auto len = swprintf_s(buf, L"server%s receive \"%s\" from client",
+        serverName_->IsEmpty() ? L"" : (" " + serverName_)->Data(), msg->Data());
+    auto display = ref new String(buf);
+    page_->NotifyFromAsyncThread(display, NotifyType::Status);
+
+    len += swprintf_s(&buf[len], _countof(buf) - len, L" - got %d chars",
+        msg->Length());
+    auto echo = ref new String(buf);
+
+    try
+    {
+        dataWriter->WriteUInt32(echo->Length());
+        dataWriter->WriteString(echo);
+    }
+    catch (Exception^ ex)
+    {
+        page_->NotifyFromAsyncThread("Echoing failed with error: " + ex->Message, NotifyType::Error);
+    }
+
+    create_task(dataWriter->StoreAsync()).then(
+        [this](task<unsigned int> writeTask)
+    {
+        try
+        {
+            // Try getting all exceptions from the continuation chain above this point.
+            writeTask.get();
+        }
+        catch (Exception^ ex)
+        {
+            page_->NotifyFromAsyncThread("Echo message with an error: " + ex->Message,
+                NotifyType::Error);
         }
     });
 }
