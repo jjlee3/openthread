@@ -20,6 +20,7 @@
     <ClCompile Include="ClientContext.cpp" />
     <ClCompile Include="ClientControl.xaml.cpp" />
     <ClCompile Include="ServerControl.xaml.cpp" />
+    <ClCompile Include="Ipv6.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="ClientControl.xaml.h" />
     <ClInclude Include="ServerControl.xaml.h" />
     <ClInclude Include="Consts.h" />
+    <ClInclude Include="Ipv6.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">

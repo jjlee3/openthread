@@ -6,6 +6,7 @@
 #include "pch.h"
 #include "ServerControl.xaml.h"
 #include "ListenerContext.h"
+#include "Ipv6.h"
 
 using namespace Concurrency;
 
@@ -37,6 +38,14 @@ SocketTcpUwp::ServerControl::Listen_Click(
         if (serverIP->IsEmpty())
         {
             throw ref new InvalidArgumentException(L"No Server IP");
+        }
+
+        if (Ipv6::IsValidAddress(serverIP))
+        {
+        }
+        else
+        {
+            throw ref new InvalidArgumentException(L"Not a valid Server IPv6 address");
         }
 
         auto serverHostName = ref new HostName(serverIP);

@@ -6,6 +6,7 @@
 #include "pch.h"
 #include "ClientControl.xaml.h"
 #include "ClientContext.h"
+#include "Ipv6.h"
 
 using namespace Concurrency;
 using namespace Platform;
@@ -40,6 +41,14 @@ SocketTcpUwp::ClientControl::Connect_Click(
             throw ref new InvalidArgumentException(L"No Server IP");
         }
 
+        if (Ipv6::IsValidAddress(serverIP))
+        {
+        }
+        else
+        {
+            throw ref new InvalidArgumentException(L"Not a valid Server IPv6 address");
+        }
+
         auto serverHostName = ref new HostName(serverIP);
 
         auto serverPort = ServerPort->Text;
@@ -52,6 +61,14 @@ SocketTcpUwp::ClientControl::Connect_Click(
         if (clientIP->IsEmpty())
         {
             throw ref new InvalidArgumentException(L"No Cient IP");
+        }
+
+        if (Ipv6::IsValidAddress(clientIP))
+        {
+        }
+        else
+        {
+            throw ref new InvalidArgumentException(L"Not a valid Client IPv6 address");
         }
 
         auto clientHostName = ref new HostName(clientIP);

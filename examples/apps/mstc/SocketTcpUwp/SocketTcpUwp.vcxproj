@@ -142,6 +142,7 @@
     </ClInclude>
     <ClInclude Include="Consts.h" />
     <ClInclude Include="IAsyncThreadPage.h" />
+    <ClInclude Include="Ipv6.h" />
     <ClInclude Include="ListenerContext.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.xaml.h">
@@ -192,6 +193,7 @@
     <ClCompile Include="ClientControl.xaml.cpp">
       <DependentUpon>ClientControl.xaml</DependentUpon>
     </ClCompile>
+    <ClCompile Include="Ipv6.cpp" />
     <ClCompile Include="ListenerContext.cpp" />
     <ClCompile Include="MainPage.xaml.cpp">
       <DependentUpon>MainPage.xaml</DependentUpon>
