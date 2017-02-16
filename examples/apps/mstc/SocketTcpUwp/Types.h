@@ -35,7 +35,7 @@ namespace SocketTcpUwp
     using Service = String;
 
     using StreamSocketListener = WNS::StreamSocketListener;
-    using SsConnectionReceivedEventArgs = WNS::StreamSocketListenerConnectionReceivedEventArgs;
-    using SsConnectionHandler = WF::TypedEventHandler<StreamSocketListener^, SsConnectionReceivedEventArgs^>;
+    using ConnectionReceivedEventArgs = WNS::StreamSocketListenerConnectionReceivedEventArgs;
+    using ConnectionHandler = WF::TypedEventHandler<StreamSocketListener^, ConnectionReceivedEventArgs^>;
     using StreamSocket = WNS::StreamSocket;
 }

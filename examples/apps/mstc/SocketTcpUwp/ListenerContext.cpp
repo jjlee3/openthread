@@ -25,8 +25,8 @@ SocketTcpUwp::ListenerContext::~ListenerContext()
 
 void
 SocketTcpUwp::ListenerContext::OnConnection(
-    StreamSocketListener^          listener,
-    SsConnectionReceivedEventArgs^ args)
+    StreamSocketListener^        listener,
+    ConnectionReceivedEventArgs^ args)
 {
     auto dataReader = ref new DataReader(args->Socket->InputStream);
     auto dataWriter = ref new DataWriter(args->Socket->OutputStream);

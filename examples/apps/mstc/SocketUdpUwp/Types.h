@@ -35,6 +35,6 @@ namespace SocketUdpUwp
     using Service = String;
 
     using DatagramSocket = WNS::DatagramSocket;
-    using DsMessageReceivedEventArgs = WNS::DatagramSocketMessageReceivedEventArgs;
-    using DsMessageHandler = WF::TypedEventHandler<DatagramSocket^, DsMessageReceivedEventArgs^>;
+    using MessageReceivedEventArgs = WNS::DatagramSocketMessageReceivedEventArgs;
+    using MessageHandler = WF::TypedEventHandler<DatagramSocket^, MessageReceivedEventArgs^>;
 }

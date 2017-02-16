@@ -13,12 +13,12 @@ namespace SocketUdpUwp
     public:
         ListenerContext(IAsyncThreadPage^ page, DatagramSocket^ listener, String^ serverName);
 
-        void OnMessage(DatagramSocket^ socket, DsMessageReceivedEventArgs^ eventArgs);
+        void OnMessage(DatagramSocket^ socket, MessageReceivedEventArgs^ eventArgs);
 
     private:
         ~ListenerContext();
 
-        void EchoMessage(DsMessageReceivedEventArgs^ eventArgs);
+        void EchoMessage(MessageReceivedEventArgs^ eventArgs);
 
         IAsyncThreadPage^ page_;
         DatagramSocket^   listener_;

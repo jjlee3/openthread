@@ -17,7 +17,7 @@ namespace SocketUdpUwp
 
         void SendMessage(String^ msg);
 
-        void OnMessage(DatagramSocket^ socket, DsMessageReceivedEventArgs^ eventArgs);
+        void OnMessage(DatagramSocket^ socket, MessageReceivedEventArgs^ eventArgs);
 
         void SetConnected();
 

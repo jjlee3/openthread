@@ -37,8 +37,8 @@ SocketUdpUwp::ListenerContext::~ListenerContext()
 
 void
 SocketUdpUwp::ListenerContext::OnMessage(
-    DatagramSocket^             socket,
-    DsMessageReceivedEventArgs^ eventArgs)
+    DatagramSocket^           socket,
+    MessageReceivedEventArgs^ eventArgs)
 {
     if (outputStream_ != nullptr)
     {
@@ -83,7 +83,7 @@ SocketUdpUwp::ListenerContext::OnMessage(
 
 void
 SocketUdpUwp::ListenerContext::EchoMessage(
-    DsMessageReceivedEventArgs ^ eventArgs)
+    MessageReceivedEventArgs ^ eventArgs)
 {
     auto dataReader = eventArgs->GetDataReader();
     auto strLen = static_cast<unsigned int>(dataReader->UnconsumedBufferLength);

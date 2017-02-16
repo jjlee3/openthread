@@ -64,7 +64,7 @@ SocketUdpUwp::ServerControl::Listen_Click(
         auto listener = ref new DatagramSocket();
         auto listenerContext = ref new ListenerContext(page_, listener, serverName);
 
-        listener->MessageReceived += ref new DsMessageHandler(
+        listener->MessageReceived += ref new MessageHandler(
             listenerContext, &ListenerContext::OnMessage);
 
         // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be

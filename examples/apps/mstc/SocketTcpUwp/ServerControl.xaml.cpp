@@ -65,7 +65,7 @@ SocketTcpUwp::ServerControl::Listen_Click(
         auto listener = ref new StreamSocketListener();
         auto listenerContext = ref new ListenerContext(page_, listener, serverName);
 
-        listener->ConnectionReceived += ref new SsConnectionHandler(
+        listener->ConnectionReceived += ref new ConnectionHandler(
             listenerContext, &ListenerContext::OnConnection);
 
         // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be

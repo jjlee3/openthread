@@ -70,8 +70,8 @@ SocketUdpUwp::ClientContext::SendMessage(
 
 void
 SocketUdpUwp::ClientContext::OnMessage(
-    DatagramSocket^             socket,
-    DsMessageReceivedEventArgs^ eventArgs)
+    DatagramSocket^           socket,
+    MessageReceivedEventArgs^ eventArgs)
 {
     try
     {
