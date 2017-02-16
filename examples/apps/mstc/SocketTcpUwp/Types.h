@@ -3,13 +3,14 @@
 namespace SocketTcpUwp
 {
     namespace WU = Windows::UI;
-    namespace WUX = Windows::UI::Xaml;
+    namespace WUC = WU::Core;
+    namespace WUX = WU::Xaml;
     namespace WUXM = WUX::Media;
-    namespace WUXC = Windows::UI::Xaml::Controls;
+    namespace WUXC = WUX::Controls;
     namespace WN = Windows::Networking;
-    namespace WNS = Windows::Networking::Sockets;
+    namespace WNS = WN::Sockets;
     namespace WF = Windows::Foundation;
-    namespace WFM = Windows::Foundation::Metadata;
+    namespace WFM = WF::Metadata;
     namespace WSS = Windows::Storage::Streams;
     namespace WAC = Windows::ApplicationModel::Core;
 
@@ -18,12 +19,14 @@ namespace SocketTcpUwp
     using Exception = Platform::Exception;
     using InvalidArgumentException = Platform::InvalidArgumentException;
     using FailureException = Platform::FailureException;
-    using RoutedEventArgs = WUX::RoutedEventArgs;
-    using SolidColorBrush = WUXM::SolidColorBrush;
     using Colors = WU::Colors;
+    using CoreApplication = WAC::CoreApplication;
+    using DispatchedHandler = WUC::DispatchedHandler;
+    using CoreDispatcherPriority = WUC::CoreDispatcherPriority;
+    using RoutedEventArgs = WUX::RoutedEventArgs;
     using RadioButton = WUXC::RadioButton;
     using Grid = WUXC::Grid;
-    using CoreApplication = WAC::CoreApplication;
+    using SolidColorBrush = WUXM::SolidColorBrush;
     using IInputStream = WSS::IInputStream;
     using IOutputStream = WSS::IOutputStream;
     using DataReader = WSS::DataReader;

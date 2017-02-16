@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include "Types.h"
 #include "IAsyncThreadPage.h"
 

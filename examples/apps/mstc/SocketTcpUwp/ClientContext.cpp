@@ -3,7 +3,6 @@
 #include "ClientContext.h"
 
 using namespace Concurrency;
-using namespace Platform;
 
 SocketTcpUwp::ClientContext::ClientContext(
     IAsyncThreadPage^ page,

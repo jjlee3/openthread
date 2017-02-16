@@ -9,8 +9,6 @@
 #include "ClientControl.xaml.h"
 
 using namespace Windows::UI::Core;
-using namespace Windows::UI::Xaml::Controls;
-using namespace Windows::UI::Xaml::Media;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 

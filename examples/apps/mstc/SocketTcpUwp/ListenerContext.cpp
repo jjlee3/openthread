@@ -4,7 +4,6 @@
 #include "ListenerContext.h"
 
 using namespace Concurrency;
-using namespace Platform;
 
 SocketTcpUwp::ListenerContext::ListenerContext(
     IAsyncThreadPage^     page,
