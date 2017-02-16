@@ -20,11 +20,14 @@ namespace SocketUdpUwp
 
         void EchoMessage(MessageReceivedEventArgs^ eventArgs);
 
+        DataWriter^ GetDataWriter();
+
         IAsyncThreadPage^ page_;
         DatagramSocket^   listener_;
         String^           serverName_;
 
         CRITICAL_SECTION lock_;
         IOutputStream^   outputStream_;
+        DataWriter^      dataWriter_;
     };
 }

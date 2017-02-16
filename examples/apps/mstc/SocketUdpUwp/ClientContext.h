@@ -26,9 +26,11 @@ namespace SocketUdpUwp
     private:
         ~ClientContext();
 
+        DataWriter^ GetDataWriter();
+
         IAsyncThreadPage^ page_;
         DatagramSocket^   client_;
         bool              connected_ = false;
-
+        DataWriter^       dataWriter_;
     };
 }

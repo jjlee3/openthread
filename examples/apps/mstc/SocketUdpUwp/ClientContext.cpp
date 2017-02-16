@@ -39,7 +39,7 @@ SocketUdpUwp::ClientContext::SendMessage(
         return;
     }
 
-    auto dataWriter = ref new DataWriter(client_->OutputStream);
+    auto dataWriter = GetDataWriter();
 
     try
     {
@@ -66,6 +66,17 @@ SocketUdpUwp::ClientContext::SendMessage(
             page_->NotifyFromAsyncThread("Send failed with error: " + ex->Message, NotifyType::Error);
         }
     });
+}
+
+SocketUdpUwp::DataWriter^
+SocketUdpUwp::ClientContext::GetDataWriter()
+{
+    if (dataWriter_ == nullptr)
+    {
+        dataWriter_ = ref new DataWriter(client_->OutputStream);
+    }
+
+    return dataWriter_;
 }
 
 void

@@ -101,7 +101,7 @@ SocketUdpUwp::ListenerContext::EchoMessage(
         msg->Length());
     auto echo = ref new String(buf);
 
-    auto dataWriter = ref new DataWriter(outputStream_);
+    auto dataWriter = GetDataWriter();
 
     try
     {
@@ -126,4 +126,15 @@ SocketUdpUwp::ListenerContext::EchoMessage(
                 NotifyType::Error);
         }
     });
+}
+
+SocketUdpUwp::DataWriter^
+SocketUdpUwp::ListenerContext::GetDataWriter()
+{
+    if (dataWriter_ == nullptr)
+    {
+        dataWriter_ = ref new DataWriter(outputStream_);
+    }
+
+    return dataWriter_;
 }
