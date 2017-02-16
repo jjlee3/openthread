@@ -9,8 +9,6 @@
 #include "Ipv6.h"
 
 using namespace Concurrency;
-using namespace Platform;
-using namespace Windows::ApplicationModel::Core;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -137,8 +135,8 @@ SocketTcpUwp::ClientControl::Connect_Click(
 
 void
 SocketTcpUwp::ClientControl::Send_Click(
-    Platform::Object^                   sender,
-    Windows::UI::Xaml::RoutedEventArgs^ e)
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
     try
     {
@@ -148,7 +146,6 @@ SocketTcpUwp::ClientControl::Send_Click(
             throw ref new InvalidArgumentException(L"No Input");
         }
 
-        using CoreApplication = Windows::ApplicationModel::Core::CoreApplication;
         if (!CoreApplication::Properties->HasKey("clientContext"))
         {
             throw ref new FailureException(L"Not Connected");
