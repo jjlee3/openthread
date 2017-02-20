@@ -8,12 +8,12 @@
 
 namespace SocketUwp
 {
-	class StreamListenerContextHelper : public ListenerContextHelper
-	{
-	public:
-		using base_t = ListenerContextHelper;
-		using base_t::base_t;
+    class StreamListenerContextHelper : public ListenerContextHelper
+    {
+    public:
+        using base_t = ListenerContextHelper;
+        using base_t::base_t;
 
-		void ReceiveLoop(StreamSocket^, DataReader^, DataWriter^);
-	};
+        void ReceiveLoop(StreamSocket^, DataReader^, DataWriter^);
+    };
 }

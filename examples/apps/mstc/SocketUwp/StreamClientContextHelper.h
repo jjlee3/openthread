@@ -6,12 +6,12 @@
 
 namespace SocketUwp
 {
-	class StreamClientContextHelper : public ClientContextHelper
-	{
-	public:
-		using base_t = ClientContextHelper;
-		using base_t::base_t;
+    class StreamClientContextHelper : public ClientContextHelper
+    {
+    public:
+        using base_t = ClientContextHelper;
+        using base_t::base_t;
 
-		void ReceiveLoop(StreamSocket^, DataReader^);
-	};
+        void ReceiveLoop(StreamSocket^, DataReader^);
+    };
 }

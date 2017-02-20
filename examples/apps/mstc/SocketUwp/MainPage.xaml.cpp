@@ -13,16 +13,16 @@
 
 SocketUwp::MainPage::MainPage()
 {
-	InitializeComponent();
+    InitializeComponent();
 
-	if (g_configurations.protocol == Protocol::TCP)
-	{
-		TcpRadio->IsChecked = true;
-	}
-	else
-	{
-		UdpRadio->IsChecked = true;
-	}
+    if (g_configurations.protocol == Protocol::TCP)
+    {
+        TcpRadio->IsChecked = true;
+    }
+    else
+    {
+        UdpRadio->IsChecked = true;
+    }
 
     ServerRadio->IsChecked = true;
 }
@@ -71,20 +71,20 @@ SocketUwp::MainPage::Notify(
 
 void
 SocketUwp::MainPage::Protocol_Changed(
-	Object^          sender,
-	RoutedEventArgs^ e)
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
-	auto radioBtn = dynamic_cast<RadioButton^>(sender);
-	if (!radioBtn) { return; }
+    auto radioBtn = dynamic_cast<RadioButton^>(sender);
+    if (!radioBtn) { return; }
 
-	if (radioBtn == TcpRadio)
-	{
-		g_configurations.protocol = Protocol::TCP;
-	}
-	else
-	{
-		g_configurations.protocol = Protocol::UDP;
-	}
+    if (radioBtn == TcpRadio)
+    {
+        g_configurations.protocol = Protocol::TCP;
+    }
+    else
+    {
+        g_configurations.protocol = Protocol::UDP;
+    }
 }
 
 void

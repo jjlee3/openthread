@@ -108,7 +108,7 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
 {
     (void) sender;  // Unused parameter
-	
+
     auto deferral = e->SuspendingOperation->GetDeferral();
     //TODO: Save application state and stop any background activity
     deferral->Complete();

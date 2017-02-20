@@ -2,16 +2,16 @@
 
 namespace SocketUwp
 {
-	enum class Protocol
-	{
-		TCP,
-		UDP,
-	};
+    enum class Protocol
+    {
+        TCP,
+        UDP,
+    };
 
-	struct Configurations
-	{
-		Protocol protocol = Protocol::TCP;
-	};
+    struct Configurations
+    {
+        Protocol protocol = Protocol::TCP;
+    };
 
 }
 
