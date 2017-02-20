@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>bf7e05a1-0465-495e-adc3-95905f6a7961</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>de027933-c738-4d8f-b53b-53b60126c251</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.xaml.cpp" />
+    <ClCompile Include="MainPage.xaml.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Ipv6.cpp" />
+    <ClCompile Include="Factory.cpp" />
+    <ClCompile Include="StreamListenerContext.cpp" />
+    <ClCompile Include="DatagramListenerContext.cpp" />
+    <ClCompile Include="StreamClientContext.cpp" />
+    <ClCompile Include="ClientControl.xaml.cpp" />
+    <ClCompile Include="ServerControl.xaml.cpp" />
+    <ClCompile Include="ListenerContextHelper.cpp" />
+    <ClCompile Include="ClientContextHelper.cpp" />
+    <ClCompile Include="ContextHelper.cpp" />
+    <ClCompile Include="DatagramClientContext.cpp" />
+    <ClCompile Include="StreamListenerContextHelper.cpp" />
+    <ClCompile Include="StreamClientContextHelper.cpp" />
+    <ClCompile Include="Configurations.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="App.xaml.h" />
+    <ClInclude Include="MainPage.xaml.h" />
+    <ClInclude Include="IAsyncThreadPage.h" />
+    <ClInclude Include="Types.h" />
+    <ClInclude Include="Consts.h" />
+    <ClInclude Include="Ipv6.h" />
+    <ClInclude Include="IListenerContext.h" />
+    <ClInclude Include="Factory.h" />
+    <ClInclude Include="ListenerContextArgs.h" />
+    <ClInclude Include="StreamListenerContext.h" />
+    <ClInclude Include="DatagramListenerContext.h" />
+    <ClInclude Include="StreamClientContext.h" />
+    <ClInclude Include="IClientContext.h" />
+    <ClInclude Include="ClientContextArgs.h" />
+    <ClInclude Include="ClientControl.xaml.h" />
+    <ClInclude Include="ServerControl.xaml.h" />
+    <ClInclude Include="ListenerContextHelper.h" />
+    <ClInclude Include="ClientContextHelper.h" />
+    <ClInclude Include="ContextHelper.h" />
+    <ClInclude Include="DatagramClientContext.h" />
+    <ClInclude Include="StreamListenerContextHelper.h" />
+    <ClInclude Include="StreamClientContextHelper.h" />
+    <ClInclude Include="Configurations.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SocketUwp_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="MainPage.xaml" />
+    <Page Include="ServerControl.xaml" />
+    <Page Include="ClientControl.xaml" />
+  </ItemGroup>
+</Project>
