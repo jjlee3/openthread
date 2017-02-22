@@ -4,9 +4,11 @@
 #include <string>
 #include "ListenerContext.h"
 
+using namespace SocketUdpUwp;
+
 using namespace Concurrency;
 
-SocketUdpUwp::ListenerContext::ListenerContext(
+ListenerContext::ListenerContext(
     IAsyncThreadPage^ page,
     DatagramSocket^   listener,
     String^           serverName) :
@@ -15,7 +17,7 @@ SocketUdpUwp::ListenerContext::ListenerContext(
     ::InitializeCriticalSectionEx(&lock_, 0, 0);
 }
 
-SocketUdpUwp::ListenerContext::~ListenerContext()
+ListenerContext::~ListenerContext()
 {
     // A DatagramSocket can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (listener is closed even if there are outstanding references to it).
@@ -36,7 +38,7 @@ SocketUdpUwp::ListenerContext::~ListenerContext()
 }
 
 void
-SocketUdpUwp::ListenerContext::OnMessage(
+ListenerContext::OnMessage(
     DatagramSocket^           socket,
     MessageReceivedEventArgs^ eventArgs)
 {
@@ -82,7 +84,7 @@ SocketUdpUwp::ListenerContext::OnMessage(
 }
 
 void
-SocketUdpUwp::ListenerContext::EchoMessage(
+ListenerContext::EchoMessage(
     MessageReceivedEventArgs ^ eventArgs)
 {
     auto dataReader = eventArgs->GetDataReader();
@@ -128,8 +130,8 @@ SocketUdpUwp::ListenerContext::EchoMessage(
     });
 }
 
-SocketUdpUwp::DataWriter^
-SocketUdpUwp::ListenerContext::GetDataWriter()
+DataWriter^
+ListenerContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {

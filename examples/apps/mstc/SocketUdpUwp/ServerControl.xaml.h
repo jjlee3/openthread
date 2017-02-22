@@ -12,8 +12,6 @@
 
 namespace SocketUdpUwp
 {
-    namespace WFM = Windows::Foundation::Metadata;
-
     [WFM::WebHostHidden]
     public ref class ServerControl sealed
 	{

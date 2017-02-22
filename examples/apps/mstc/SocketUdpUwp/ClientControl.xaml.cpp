@@ -8,26 +8,29 @@
 #include "ClientContext.h"
 #include "Ipv6.h"
 
+using namespace SocketUdpUwp;
+
 using namespace Concurrency;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
-SocketUdpUwp::ClientControl::ClientControl()
+ClientControl::ClientControl()
 {
-	InitializeComponent();
+    InitializeComponent();
+
     ServerPort->Text = DEF_SERVER_PORT.ToString();
     ClientPort->Text = DEF_PORT.ToString();
 }
 
 void
-SocketUdpUwp::ClientControl::Init(
+ClientControl::Init(
     IAsyncThreadPage^ page)
 {
     page_ = page;
 }
 
 void
-SocketUdpUwp::ClientControl::Connect_Click(
+ClientControl::Connect_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
@@ -136,7 +139,7 @@ SocketUdpUwp::ClientControl::Connect_Click(
 }
 
 void
-SocketUdpUwp::ClientControl::Send_Click(
+ClientControl::Send_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {

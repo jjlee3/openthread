@@ -2,16 +2,18 @@
 #include <utility>
 #include "ClientContext.h"
 
+using namespace SocketTcpUwp;
+
 using namespace Concurrency;
 
-SocketUdpUwp::ClientContext::ClientContext(
+ClientContext::ClientContext(
     IAsyncThreadPage^ page,
     DatagramSocket ^  client) :
     page_{ std::move(page) }, client_{ std::move(client) }
 {
 }
 
-SocketUdpUwp::ClientContext::~ClientContext()
+ClientContext::~ClientContext()
 {
     // A DatagramSocket can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (listener is closed even if there are outstanding references to it).
@@ -30,7 +32,7 @@ SocketUdpUwp::ClientContext::~ClientContext()
 }
 
 void
-SocketUdpUwp::ClientContext::SendMessage(
+ClientContext::SendMessage(
     String ^ msg)
 {
     if (!IsConnected())
@@ -68,8 +70,8 @@ SocketUdpUwp::ClientContext::SendMessage(
     });
 }
 
-SocketUdpUwp::DataWriter^
-SocketUdpUwp::ClientContext::GetDataWriter()
+DataWriter^
+ClientContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {
@@ -80,7 +82,7 @@ SocketUdpUwp::ClientContext::GetDataWriter()
 }
 
 void
-SocketUdpUwp::ClientContext::OnMessage(
+ClientContext::OnMessage(
     DatagramSocket^           socket,
     MessageReceivedEventArgs^ eventArgs)
 {
@@ -121,13 +123,13 @@ SocketUdpUwp::ClientContext::OnMessage(
 }
 
 void
-SocketUdpUwp::ClientContext::SetConnected()
+ClientContext::SetConnected()
 {
     connected_ = true;
 }
 
 bool
-SocketUdpUwp::ClientContext::IsConnected()
+ClientContext::IsConnected()
 {
     return connected_;
 }
