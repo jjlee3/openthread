@@ -1,9 +1,9 @@
 #pragma once
 
 #include "IAsyncThreadPage.h"
-#include "ListenerContextArgs.h"
+#include "ListenerArgs.h"
 #include "IListenerContext.h"
-#include "ClientContextArgs.h"
+#include "ClientArgs.h"
 #include "IClientContext.h"
 
 namespace SocketUwp
@@ -11,8 +11,8 @@ namespace SocketUwp
     class Factory
     {
     public:
-        static IListenerContext^ CreateListenerContext(IAsyncThreadPage^, ListenerContextArgs^);
+        static IListenerContext^ CreateListenerContext(IAsyncThreadPage^, ListenerArgs^);
 
-        static IClientContext^ CreateClientContext(IAsyncThreadPage^, ClientContextArgs^);
+        static IClientContext^ CreateClientContext(IAsyncThreadPage^, ClientArgs^);
     };
 }

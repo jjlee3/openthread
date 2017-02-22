@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <stdlib.h>
 #include <utility>
 #include "StreamListenerContext.h"
 
@@ -10,10 +9,10 @@ using namespace Concurrency;
 StreamListenerContext::StreamListenerContext(
     IAsyncThreadPage^     page,
     StreamSocketListener^ listener,
-    ListenerContextArgs^  args) :
+    ListenerArgs^         args) :
+    listener_{ std::move(listener) },
     args_{ std::move(args) },
-    streamListenerContextHelper_{ std::move(page), args_->ServerName },
-    listener_{ std::move(listener) }
+    helper_{ std::move(page), args_->ServerName }
 {
 }
 
@@ -59,14 +58,14 @@ StreamListenerContext::Listen_Click(
         {
             // Try getting an exception.
             prevTask.get();
-            streamListenerContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Listening on address " + args_->ServerHostName->CanonicalName,
                 NotifyType::Status);
         }
         catch (Exception^ ex)
         {
             CoreApplication::Properties->Remove("listenerContext");
-            streamListenerContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Start listening failed with error: " + ex->Message,
                 NotifyType::Error);
         }
@@ -81,5 +80,5 @@ StreamListenerContext::OnConnection(
     auto dataReader = ref new DataReader(args->Socket->InputStream);
     auto dataWriter = ref new DataWriter(args->Socket->OutputStream);
 
-    streamListenerContextHelper_.ReceiveLoop(args->Socket, dataReader, dataWriter);
+    helper_.ReceiveLoop(args->Socket, dataReader, dataWriter);
 }

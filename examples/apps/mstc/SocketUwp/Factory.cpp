@@ -10,34 +10,34 @@ using namespace SocketUwp;
 
 IListenerContext^
 Factory::CreateListenerContext(
-    IAsyncThreadPage^    page,
-    ListenerContextArgs^ listenerContextArgs)
+    IAsyncThreadPage^ page,
+    ListenerArgs^     listenerArgs)
 {
     if (g_configurations.protocol == Protocol::TCP)
     {
         auto listener = ref new StreamSocketListener();
-        return ref new StreamListenerContext(page, listener, listenerContextArgs);
+        return ref new StreamListenerContext(page, listener, listenerArgs);
     }
     else
     {
         auto listener = ref new DatagramSocket();
-        return ref new DatagramListenerContext(page, listener, listenerContextArgs);
+        return ref new DatagramListenerContext(page, listener, listenerArgs);
     }
 }
 
 IClientContext^
 Factory::CreateClientContext(
-    IAsyncThreadPage^  page,
-    ClientContextArgs^ clientContextArgs)
+    IAsyncThreadPage^ page,
+    ClientArgs^       clientArgs)
 {
     if (g_configurations.protocol == Protocol::TCP)
     {
         auto client = ref new StreamSocket();
-        return ref new StreamClientContext(page, client, clientContextArgs);
+        return ref new StreamClientContext(page, client, clientArgs);
     }
     else
     {
         auto client = ref new DatagramSocket();
-        return ref new DatagramClientContext(page, client, clientContextArgs);
+        return ref new DatagramClientContext(page, client, clientArgs);
     }
 }

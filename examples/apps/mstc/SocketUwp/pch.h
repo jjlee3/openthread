@@ -7,5 +7,6 @@
 
 #include <collection.h>
 #include <ppltasks.h>
+#include <utility>
 
 #include "App.xaml.h"

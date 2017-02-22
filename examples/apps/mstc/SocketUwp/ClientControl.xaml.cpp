@@ -5,8 +5,8 @@
 
 #include "pch.h"
 #include "ClientControl.xaml.h"
+#include "ClientArgs.h"
 #include "Ipv6.h"
-#include "ClientContextArgs.h"
 #include "Factory.h"
 
 using namespace SocketUwp;
@@ -37,7 +37,7 @@ ClientControl::Connect_Click(
 {
     try
     {
-        auto clientContextArgs = ref new ClientContextArgs();
+        auto clientArgs = ref new ClientArgs();
 
         auto serverIP = ServerIP->Text;
         if (serverIP->IsEmpty())
@@ -53,12 +53,12 @@ ClientControl::Connect_Click(
             throw ref new InvalidArgumentException(L"Not a valid Server IPv6 address");
         }
 
-        clientContextArgs->ServerHostName = ref new HostName(serverIP);
+        clientArgs->ServerHostName = ref new HostName(serverIP);
 
-        clientContextArgs->ServerPort = ServerPort->Text;
-        if (clientContextArgs->ServerPort->IsEmpty())
+        clientArgs->ServerPort = ServerPort->Text;
+        if (clientArgs->ServerPort->IsEmpty())
         {
-            clientContextArgs->ServerPort = DEF_SERVER_PORT.ToString();
+            clientArgs->ServerPort = DEF_SERVER_PORT.ToString();
         }
 
         auto clientIP = ClientIP->Text;
@@ -75,15 +75,15 @@ ClientControl::Connect_Click(
             throw ref new InvalidArgumentException(L"Not a valid Client IPv6 address");
         }
 
-        clientContextArgs->ClientHostName = ref new HostName(clientIP);
+        clientArgs->ClientHostName = ref new HostName(clientIP);
 
-        clientContextArgs->ClientPort = ClientPort->Text;
-        if (clientContextArgs->ClientPort->IsEmpty())
+        clientArgs->ClientPort = ClientPort->Text;
+        if (clientArgs->ClientPort->IsEmpty())
         {
-            clientContextArgs->ClientPort = DEF_PORT.ToString();
+            clientArgs->ClientPort = DEF_PORT.ToString();
         }
 
-        auto cleintContext = Factory::CreateClientContext(page_, clientContextArgs);
+        auto cleintContext = Factory::CreateClientContext(page_, clientArgs);
         cleintContext->Connect_Click(sender, e);
     }
     catch (Exception^ ex)

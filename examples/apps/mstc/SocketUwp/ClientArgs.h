@@ -4,11 +4,12 @@
 
 namespace SocketUwp
 {
-    public ref class ListenerContextArgs sealed
+    public ref class ClientArgs sealed
     {
     public:
-        property String^   ServerName;
         property HostName^ ServerHostName;
         property Service^  ServerPort;
+        property HostName^ ClientHostName;
+        property Service^  ClientPort;
     };
 }

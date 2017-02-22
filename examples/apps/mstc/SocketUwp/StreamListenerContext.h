@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "IListenerContext.h"
 #include "IAsyncThreadPage.h"
-#include "ListenerContextArgs.h"
+#include "ListenerArgs.h"
 #include "StreamListenerContextHelper.h"
 
 namespace SocketUwp
@@ -12,16 +12,20 @@ namespace SocketUwp
     public ref class StreamListenerContext sealed : public IListenerContext
     {
     public:
-        StreamListenerContext(IAsyncThreadPage^ page, StreamSocketListener^ listener, ListenerContextArgs^ args);
+        StreamListenerContext(IAsyncThreadPage^ page, StreamSocketListener^ listener, ListenerArgs^ args);
         virtual ~StreamListenerContext();
 
         virtual void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
     private:
+        using Listener = StreamSocketListener;
+        using Args = ListenerArgs;
+        using Helper = StreamListenerContextHelper;
+
         void OnConnection(StreamSocketListener^ listener, ConnectionReceivedEventArgs^ args);
 
-        ListenerContextArgs^        args_;
-        StreamListenerContextHelper streamListenerContextHelper_;
-        StreamSocketListener^       listener_;
+        Listener^ listener_;
+        Args^     args_;
+        Helper    helper_;
     };
 }

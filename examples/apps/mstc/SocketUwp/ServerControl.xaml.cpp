@@ -5,8 +5,8 @@
 
 #include "pch.h"
 #include "ServerControl.xaml.h"
+#include "ListenerArgs.h"
 #include "Ipv6.h"
-#include "ListenerContextArgs.h"
 #include "Factory.h"
 
 using namespace SocketUwp;
@@ -36,9 +36,9 @@ ServerControl::Listen_Click(
 {
     try
     {
-        auto listenerContextArgs = ref new ListenerContextArgs();
+        auto listenerArgs = ref new ListenerArgs();
 
-        listenerContextArgs->ServerName = ServerName->Text;
+        listenerArgs->ServerName = ServerName->Text;
 
         auto serverIP = ServerIP->Text;
         if (serverIP->IsEmpty())
@@ -54,15 +54,15 @@ ServerControl::Listen_Click(
             throw ref new InvalidArgumentException(L"Not a valid Server IPv6 address");
         }
 
-        listenerContextArgs->ServerHostName = ref new HostName(serverIP);
+        listenerArgs->ServerHostName = ref new HostName(serverIP);
 
-        listenerContextArgs->ServerPort = ServerPort->Text;
-        if (listenerContextArgs->ServerPort->IsEmpty())
+        listenerArgs->ServerPort = ServerPort->Text;
+        if (listenerArgs->ServerPort->IsEmpty())
         {
-            listenerContextArgs->ServerPort = DEF_PORT.ToString();
+            listenerArgs->ServerPort = DEF_PORT.ToString();
         }
 
-        auto listenerContext = Factory::CreateListenerContext(page_, listenerContextArgs);
+        auto listenerContext = Factory::CreateListenerContext(page_, listenerArgs);
         listenerContext->Listen_Click(sender, e);
     }
     catch (Exception^ ex)

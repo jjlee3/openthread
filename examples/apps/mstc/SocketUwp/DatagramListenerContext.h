@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "IListenerContext.h"
 #include "IAsyncThreadPage.h"
-#include "ListenerContextArgs.h"
+#include "ListenerArgs.h"
 #include "ListenerContextHelper.h"
 
 namespace SocketUwp
@@ -12,19 +12,23 @@ namespace SocketUwp
     public ref class DatagramListenerContext sealed : public IListenerContext
     {
     public:
-        DatagramListenerContext(IAsyncThreadPage^ page, DatagramSocket^ listener, ListenerContextArgs^ args);
+        DatagramListenerContext(IAsyncThreadPage^ page, DatagramSocket^ listener, ListenerArgs^ args);
         virtual ~DatagramListenerContext();
 
         virtual void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
     private:
+        using Listener = DatagramSocket;
+        using Args = ListenerArgs;
+        using Helper = ListenerContextHelper;
+
         void OnMessage(DatagramSocket^ socket, MessageReceivedEventArgs^ eventArgs);
 
         DataWriter^ GetDataWriter();
 
-        ListenerContextArgs^  args_;
-        ListenerContextHelper listenerContextHelper_;
-        DatagramSocket^       listener_;
+        Listener^ listener_;
+        Args^     args_;
+        Helper    helper_;
 
         CRITICAL_SECTION lock_;
         IOutputStream^   outputStream_;

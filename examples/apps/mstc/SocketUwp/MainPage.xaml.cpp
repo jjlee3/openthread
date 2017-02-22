@@ -5,9 +5,9 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
+#include "Configurations.h"
 #include "ServerControl.xaml.h"
 #include "ClientControl.xaml.h"
-#include "Configurations.h"
 
 using namespace SocketUwp;
 
@@ -17,7 +17,7 @@ MainPage::MainPage()
 {
     InitializeComponent();
 
-    UdpRadio->IsChecked = g_configurations.protocol == Protocol::TCP;
+    TcpRadio->IsChecked = g_configurations.protocol == Protocol::TCP;
     ServerRadio->IsChecked = true;
 }
 

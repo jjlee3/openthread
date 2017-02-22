@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <utility>
 #include "DatagramClientContext.h"
 
 using namespace SocketUwp;
@@ -8,10 +9,10 @@ using namespace Concurrency;
 DatagramClientContext::DatagramClientContext(
     IAsyncThreadPage^  page,
     DatagramSocket^    client,
-    ClientContextArgs^ args) :
+    ClientArgs^        args) :
+    client_{ std::move(client) },
     args_{ std::move(args) },
-    clientContextHelper_{ std::move(page) },
-    client_{ std::move(client) }
+    helper_{ std::move(page) }
 {
 }
 
@@ -60,16 +61,16 @@ DatagramClientContext::Connect_Click(
         {
             // Try getting an exception.
             prevTask.get();
-            clientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Connect from " + endpointPair->LocalHostName->CanonicalName +
                 " to " + endpointPair->RemoteHostName->CanonicalName,
                 NotifyType::Status);
-            clientContextHelper_.SetConnected(true);
+            helper_.SetConnected(true);
         }
         catch (Exception^ ex)
         {
             CoreApplication::Properties->Remove("clientContext");
-            clientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Start binding failed with error: " + ex->Message,
                 NotifyType::Error);
         }
@@ -86,7 +87,7 @@ DatagramClientContext::Send_Click(
     RoutedEventArgs^ e,
     String^          input)
 {
-    clientContextHelper_.SendMessage(GetDataWriter(), false, input);
+    helper_.SendMessage(GetDataWriter(), false, input);
 }
 
 void
@@ -97,7 +98,7 @@ DatagramClientContext::OnMessage(
     try
     {
         auto dataReader = eventArgs->GetDataReader();
-        clientContextHelper_.Receive(dataReader, dataReader->UnconsumedBufferLength);
+        helper_.Receive(dataReader, dataReader->UnconsumedBufferLength);
     }
     catch (Exception^ ex)
     {
@@ -105,14 +106,14 @@ DatagramClientContext::OnMessage(
         if (socketError == SocketErrorStatus::ConnectionResetByPeer)
         {
             // This error would indicate that a previous send operation resulted in an ICMP "Port Unreachable" message.
-            clientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Peer does not listen on the specific port. Please make sure that you run step 1 first " +
                 "or you have a server properly working on a remote server.",
                 NotifyType::Error);
         }
         else if (socketError != SocketErrorStatus::Unknown)
         {
-            clientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Error happened when receiving a datagram: " + socketError.ToString(),
                 NotifyType::Error);
         }

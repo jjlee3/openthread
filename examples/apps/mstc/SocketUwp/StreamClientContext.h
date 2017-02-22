@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "IClientContext.h"
 #include "IAsyncThreadPage.h"
-#include "ClientContextArgs.h"
+#include "ClientArgs.h"
 #include "StreamClientContextHelper.h"
 
 namespace SocketUwp
@@ -12,7 +12,7 @@ namespace SocketUwp
     public ref class StreamClientContext sealed : public IClientContext
     {
     public:
-        StreamClientContext(IAsyncThreadPage^ page, StreamSocket^ client, ClientContextArgs^ args);
+        StreamClientContext(IAsyncThreadPage^ page, StreamSocket^ client, ClientArgs^ args);
         virtual ~StreamClientContext();
 
         virtual void Connect_Click(Object^ sender, RoutedEventArgs^ e);
@@ -20,15 +20,18 @@ namespace SocketUwp
         virtual void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
 
     private:
+        using Args = ClientArgs;
+        using Helper = StreamClientContextHelper;
+
         void OnConnection(StreamSocket^ streamSocket);
 
         DataReader^ GetDataReader();
         DataWriter^ GetDataWriter();
 
-        ClientContextArgs^        args_;
-        StreamClientContextHelper streamClientContextHelper_;
-        StreamSocket^             client_;
-        DataReader^               dataReader_;
-        DataWriter^               dataWriter_;
+        StreamSocket^ client_;
+        ClientArgs^   args_;
+        Helper        helper_;
+        DataReader^   dataReader_;
+        DataWriter^   dataWriter_;
     };
 }

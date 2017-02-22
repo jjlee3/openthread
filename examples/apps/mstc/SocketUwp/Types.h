@@ -2,40 +2,41 @@
 
 namespace SocketUwp
 {
+    namespace WAC = Windows::ApplicationModel::Core;
+    namespace WF = Windows::Foundation;
+    namespace WFM = WF::Metadata;
+    namespace WN = Windows::Networking;
+    namespace WNS = WN::Sockets;
+    namespace WSS = Windows::Storage::Streams;
     namespace WU = Windows::UI;
     namespace WUC = WU::Core;
     namespace WUX = WU::Xaml;
-    namespace WUXM = WUX::Media;
     namespace WUXC = WUX::Controls;
-    namespace WN = Windows::Networking;
-    namespace WNS = WN::Sockets;
-    namespace WF = Windows::Foundation;
-    namespace WFM = WF::Metadata;
-    namespace WSS = Windows::Storage::Streams;
-    namespace WAC = Windows::ApplicationModel::Core;
+    namespace WUXM = WUX::Media;
 
     using Object = Platform::Object;
     using String = Platform::String;
     using Exception = Platform::Exception;
     using InvalidArgumentException = Platform::InvalidArgumentException;
     using FailureException = Platform::FailureException;
-    using Colors = WU::Colors;
+    using Service = String;
+
     using CoreApplication = WAC::CoreApplication;
-    using DispatchedHandler = WUC::DispatchedHandler;
-    using CoreDispatcherPriority = WUC::CoreDispatcherPriority;
-    using RoutedEventArgs = WUX::RoutedEventArgs;
-    using RadioButton = WUXC::RadioButton;
-    using Grid = WUXC::Grid;
-    using SolidColorBrush = WUXM::SolidColorBrush;
-    using IInputStream = WSS::IInputStream;
-    using IOutputStream = WSS::IOutputStream;
-    using DataReader = WSS::DataReader;
-    using DataWriter = WSS::DataWriter;
-    using HostName = WN::HostName;
     using EndpointPair = WN::EndpointPair;
+    using HostName = WN::HostName;
     using SocketError = WNS::SocketError;
     using SocketErrorStatus = WNS::SocketErrorStatus;
-    using Service = String;
+    using DataReader = WSS::DataReader;
+    using DataWriter = WSS::DataWriter;
+    using IInputStream = WSS::IInputStream;
+    using IOutputStream = WSS::IOutputStream;
+    using Colors = WU::Colors;
+    using CoreDispatcherPriority = WUC::CoreDispatcherPriority;
+    using DispatchedHandler = WUC::DispatchedHandler;
+    using RoutedEventArgs = WUX::RoutedEventArgs;
+    using Grid = WUXC::Grid;
+    using RadioButton = WUXC::RadioButton;
+    using SolidColorBrush = WUXM::SolidColorBrush;
 
     using StreamSocketListener = WNS::StreamSocketListener;
     using ConnectionReceivedEventArgs = WNS::StreamSocketListenerConnectionReceivedEventArgs;

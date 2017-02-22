@@ -6,12 +6,12 @@ using namespace SocketUwp;
 using namespace Concurrency;
 
 DatagramListenerContext::DatagramListenerContext(
-    IAsyncThreadPage^    page,
-    DatagramSocket^      listener,
-    ListenerContextArgs^ args) :
-    args_{ std::move(args) },
-    listenerContextHelper_{ std::move(page), args_->ServerName },
-    listener_{ std::move(listener) }
+    IAsyncThreadPage^ page,
+    DatagramSocket^   listener,
+    ListenerArgs^     args) :
+    listener_{ std::move(listener) },
+    args_ { std::move(args) },
+    helper_{ std::move(page), args_->ServerName }
 {
     ::InitializeCriticalSectionEx(&lock_, 0, 0);
 }
@@ -60,14 +60,14 @@ DatagramListenerContext::Listen_Click(
         {
             // Try getting an exception.
             prevTask.get();
-            listenerContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Listening on address " + args_->ServerHostName->CanonicalName,
                 NotifyType::Status);
         }
         catch (Exception^ ex)
         {
             CoreApplication::Properties->Remove("listenerContext");
-            listenerContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Start listening failed with error: " + ex->Message,
                 NotifyType::Error);
         }
@@ -82,7 +82,7 @@ DatagramListenerContext::OnMessage(
     if (outputStream_ != nullptr)
     {
         auto dataReader = eventArgs->GetDataReader();
-        listenerContextHelper_.Receive(dataReader, dataReader->UnconsumedBufferLength, GetDataWriter(), false);
+        helper_.Receive(dataReader, dataReader->UnconsumedBufferLength, GetDataWriter(), false);
         return;
     }
 
@@ -102,7 +102,7 @@ DatagramListenerContext::OnMessage(
         LeaveCriticalSection(&lock_);
 
         auto dataReader = eventArgs->GetDataReader();
-        listenerContextHelper_.Receive(dataReader, dataReader->UnconsumedBufferLength, GetDataWriter(), false);
+        helper_.Receive(dataReader, dataReader->UnconsumedBufferLength, GetDataWriter(), false);
     }).then([this](task<void> prevTask)
     {
         try
@@ -112,7 +112,7 @@ DatagramListenerContext::OnMessage(
         }
         catch (Exception^ ex)
         {
-            listenerContextHelper_.NotifyFromAsyncThread("On message with an error: " + ex->Message,
+            helper_.NotifyFromAsyncThread("On message with an error: " + ex->Message,
                 NotifyType::Error);
         }
         catch (task_canceled&)

@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "IClientContext.h"
 #include "IAsyncThreadPage.h"
-#include "ClientContextArgs.h"
+#include "ClientArgs.h"
 #include "ClientContextHelper.h"
 
 namespace SocketUwp
@@ -12,7 +12,7 @@ namespace SocketUwp
     public ref class DatagramClientContext sealed : public IClientContext
     {
     public:
-        DatagramClientContext(IAsyncThreadPage^ page, DatagramSocket^ client, ClientContextArgs^ args);
+        DatagramClientContext(IAsyncThreadPage^ page, DatagramSocket^ client, ClientArgs^ args);
         virtual ~DatagramClientContext();
 
         virtual void Connect_Click(Object^ sender, RoutedEventArgs^ e);
@@ -20,14 +20,17 @@ namespace SocketUwp
         virtual void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
 
     private:
+        using Args = ClientArgs;
+        using Helper = ClientContextHelper;
+
         void OnMessage(DatagramSocket^ socket, MessageReceivedEventArgs^ eventArgs);
 
         DataWriter^ GetDataWriter();
 
-        ClientContextArgs^  args_;
-        ClientContextHelper clientContextHelper_;
-        DatagramSocket^     client_;
-        DataReader^         dataReader_;
-        DataWriter^         dataWriter_;
+        DatagramSocket^ client_;
+        ClientArgs^     args_;
+        Helper          helper_;
+        DataReader^     dataReader_;
+        DataWriter^     dataWriter_;
     };
 }

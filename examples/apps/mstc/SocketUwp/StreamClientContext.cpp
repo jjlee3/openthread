@@ -6,12 +6,12 @@ using namespace SocketUwp;
 using namespace Concurrency;
 
 StreamClientContext::StreamClientContext(
-    IAsyncThreadPage^  page,
-    StreamSocket^      client,
-    ClientContextArgs^ args) :
+    IAsyncThreadPage^ page,
+    StreamSocket^     client,
+    ClientArgs^       args) :
+    client_{ std::move(client) },
     args_{ std::move(args) },
-    streamClientContextHelper_{ std::move(page) },
-    client_{ std::move(client) }
+    helper_{ std::move(page) }
 {
 }
 
@@ -57,7 +57,7 @@ StreamClientContext::Connect_Click(
         {
             // Try getting an exception.
             prevTask.get();
-            streamClientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Connect from " + endpointPair->LocalHostName->CanonicalName +
                 " to " + endpointPair->RemoteHostName->CanonicalName,
                 NotifyType::Status);
@@ -66,7 +66,7 @@ StreamClientContext::Connect_Click(
         catch (Exception^ ex)
         {
             CoreApplication::Properties->Remove("clientContext");
-            streamClientContextHelper_.NotifyFromAsyncThread(
+            helper_.NotifyFromAsyncThread(
                 "Start binding failed with error: " + ex->Message,
                 NotifyType::Error);
         }
@@ -83,15 +83,15 @@ StreamClientContext::Send_Click(
     RoutedEventArgs^ e,
     String^          input)
 {
-    streamClientContextHelper_.SendMessage(GetDataWriter(), true, input);
+    helper_.SendMessage(GetDataWriter(), true, input);
 }
 
 void
 StreamClientContext::OnConnection(
     StreamSocket^ streamSocket)
 {
-    streamClientContextHelper_.SetConnected(true);
-    streamClientContextHelper_.ReceiveLoop(streamSocket, GetDataReader());
+    helper_.SetConnected(true);
+    helper_.ReceiveLoop(streamSocket, GetDataReader());
 }
 
 DataReader^
