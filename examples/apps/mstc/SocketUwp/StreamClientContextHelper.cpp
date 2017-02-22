@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "StreamClientContextHelper.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
 void
-SocketUwp::StreamClientContextHelper::ReceiveLoop(
+StreamClientContextHelper::ReceiveLoop(
     StreamSocket^ streamSocket,
     DataReader^   dataReader)
 {

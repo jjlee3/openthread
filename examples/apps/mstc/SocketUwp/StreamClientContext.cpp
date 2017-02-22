@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "StreamClientContext.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::StreamClientContext::StreamClientContext(
+StreamClientContext::StreamClientContext(
     IAsyncThreadPage^  page,
     StreamSocket^      client,
     ClientContextArgs^ args) :
@@ -13,7 +15,7 @@ SocketUwp::StreamClientContext::StreamClientContext(
 {
 }
 
-SocketUwp::StreamClientContext::~StreamClientContext()
+StreamClientContext::~StreamClientContext()
 {
     // A Client can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (client is closed even if there are outstanding references to it).
@@ -31,7 +33,7 @@ SocketUwp::StreamClientContext::~StreamClientContext()
 }
 
 void
-SocketUwp::StreamClientContext::Connect_Click(
+StreamClientContext::Connect_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
@@ -76,7 +78,7 @@ SocketUwp::StreamClientContext::Connect_Click(
 }
 
 void
-SocketUwp::StreamClientContext::Send_Click(
+StreamClientContext::Send_Click(
     Object^          sender,
     RoutedEventArgs^ e,
     String^          input)
@@ -85,15 +87,15 @@ SocketUwp::StreamClientContext::Send_Click(
 }
 
 void
-SocketUwp::StreamClientContext::OnConnection(
+StreamClientContext::OnConnection(
     StreamSocket^ streamSocket)
 {
     streamClientContextHelper_.SetConnected(true);
     streamClientContextHelper_.ReceiveLoop(streamSocket, GetDataReader());
 }
 
-SocketUwp::DataReader^
-SocketUwp::StreamClientContext::GetDataReader()
+DataReader^
+StreamClientContext::GetDataReader()
 {
     if (dataReader_ == nullptr)
     {
@@ -103,8 +105,8 @@ SocketUwp::StreamClientContext::GetDataReader()
     return dataReader_;
 }
 
-SocketUwp::DataWriter^
-SocketUwp::StreamClientContext::GetDataWriter()
+DataWriter^
+StreamClientContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {

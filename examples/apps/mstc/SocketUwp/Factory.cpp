@@ -6,8 +6,10 @@
 #include "DatagramClientContext.h"
 #include "Configurations.h"
 
-SocketUwp::IListenerContext^
-SocketUwp::Factory::CreateListenerContext(
+using namespace SocketUwp;
+
+IListenerContext^
+Factory::CreateListenerContext(
     IAsyncThreadPage^    page,
     ListenerContextArgs^ listenerContextArgs)
 {
@@ -23,8 +25,8 @@ SocketUwp::Factory::CreateListenerContext(
     }
 }
 
-SocketUwp::IClientContext^
-SocketUwp::Factory::CreateClientContext(
+IClientContext^
+Factory::CreateClientContext(
     IAsyncThreadPage^  page,
     ClientContextArgs^ clientContextArgs)
 {

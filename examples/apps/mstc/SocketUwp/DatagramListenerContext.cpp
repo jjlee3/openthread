@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "DatagramListenerContext.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::DatagramListenerContext::DatagramListenerContext(
+DatagramListenerContext::DatagramListenerContext(
     IAsyncThreadPage^    page,
     DatagramSocket^      listener,
     ListenerContextArgs^ args) :
@@ -14,7 +16,7 @@ SocketUwp::DatagramListenerContext::DatagramListenerContext(
     ::InitializeCriticalSectionEx(&lock_, 0, 0);
 }
 
-SocketUwp::DatagramListenerContext::~DatagramListenerContext()
+DatagramListenerContext::~DatagramListenerContext()
 {
     // A Listener can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (listener is closed even if there are outstanding references to it).
@@ -34,7 +36,7 @@ SocketUwp::DatagramListenerContext::~DatagramListenerContext()
 }
 
 void
-SocketUwp::DatagramListenerContext::Listen_Click(
+DatagramListenerContext::Listen_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
@@ -73,7 +75,7 @@ SocketUwp::DatagramListenerContext::Listen_Click(
 }
 
 void
-SocketUwp::DatagramListenerContext::OnMessage(
+DatagramListenerContext::OnMessage(
     DatagramSocket^           socket,
     MessageReceivedEventArgs^ eventArgs)
 {
@@ -120,8 +122,8 @@ SocketUwp::DatagramListenerContext::OnMessage(
     });
 }
 
-SocketUwp::DataWriter^
-SocketUwp::DatagramListenerContext::GetDataWriter()
+DataWriter^
+DatagramListenerContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {

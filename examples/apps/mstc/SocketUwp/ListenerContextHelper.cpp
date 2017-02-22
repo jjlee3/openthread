@@ -3,9 +3,11 @@
 #include <utility>
 #include "ListenerContextHelper.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::ListenerContextHelper::ListenerContextHelper(
+ListenerContextHelper::ListenerContextHelper(
     IAsyncThreadPage^ page,
     String^           serverName) :
     ContextHelper{ std::move(page) }, serverName_ { std::move(serverName) }
@@ -13,7 +15,7 @@ SocketUwp::ListenerContextHelper::ListenerContextHelper(
 }
 
 void
-SocketUwp::ListenerContextHelper::Receive(
+ListenerContextHelper::Receive(
     DataReader^           dataReader,
     unsigned int          strLen,
     DataWriter^           dataWriter,
@@ -28,8 +30,8 @@ SocketUwp::ListenerContextHelper::Receive(
     EchoMessage(dataWriter, withMsgLen, echo);
 }
 
-SocketUwp::String^
-SocketUwp::ListenerContextHelper::CreateEchoMessage(
+String^
+ListenerContextHelper::CreateEchoMessage(
     String^ msg)
 {
     wchar_t buf[256];
@@ -42,7 +44,7 @@ SocketUwp::ListenerContextHelper::CreateEchoMessage(
 }
 
 void
-SocketUwp::ListenerContextHelper::EchoMessage(
+ListenerContextHelper::EchoMessage(
     DataWriter^ dataWriter,
     bool        withMsgLen,
     String^     echo)

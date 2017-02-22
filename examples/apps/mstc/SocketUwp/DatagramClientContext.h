@@ -8,8 +8,6 @@
 
 namespace SocketUwp
 {
-    namespace WFM = Windows::Foundation::Metadata;
-
     [WFM::WebHostHidden]
     public ref class DatagramClientContext sealed : public IClientContext
     {

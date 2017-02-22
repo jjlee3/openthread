@@ -3,9 +3,11 @@
 #include <utility>
 #include "StreamListenerContext.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::StreamListenerContext::StreamListenerContext(
+StreamListenerContext::StreamListenerContext(
     IAsyncThreadPage^     page,
     StreamSocketListener^ listener,
     ListenerContextArgs^  args) :
@@ -15,7 +17,7 @@ SocketUwp::StreamListenerContext::StreamListenerContext(
 {
 }
 
-SocketUwp::StreamListenerContext::~StreamListenerContext()
+StreamListenerContext::~StreamListenerContext()
 {
     // A Listener can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (listener is closed even if there are outstanding references to it).
@@ -33,8 +35,9 @@ SocketUwp::StreamListenerContext::~StreamListenerContext()
 }
 
 void
-SocketUwp::StreamListenerContext::Listen_Click(
-    Object^ sender, RoutedEventArgs^ e)
+StreamListenerContext::Listen_Click(
+    Object^          sender,
+    RoutedEventArgs^ e)
 {
     if (CoreApplication::Properties->HasKey("listenerContext"))
     {
@@ -71,7 +74,7 @@ SocketUwp::StreamListenerContext::Listen_Click(
 }
 
 void
-SocketUwp::StreamListenerContext::OnConnection(
+StreamListenerContext::OnConnection(
     StreamSocketListener^        listener,
     ConnectionReceivedEventArgs^ args)
 {

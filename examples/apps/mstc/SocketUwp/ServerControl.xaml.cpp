@@ -5,29 +5,32 @@
 
 #include "pch.h"
 #include "ServerControl.xaml.h"
-#include "Factory.h"
 #include "Ipv6.h"
 #include "ListenerContextArgs.h"
+#include "Factory.h"
+
+using namespace SocketUwp;
 
 using namespace Concurrency;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
-SocketUwp::ServerControl::ServerControl()
+ServerControl::ServerControl()
 {
     InitializeComponent();
+
     ServerPort->Text = DEF_PORT.ToString();
 }
 
 void
-SocketUwp::ServerControl::Init(
+ServerControl::Init(
     IAsyncThreadPage^ page)
 {
     page_ = page;
 }
 
 void
-SocketUwp::ServerControl::Listen_Click(
+ServerControl::Listen_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {

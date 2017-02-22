@@ -1,14 +1,16 @@
 #include "pch.h"
 #include "ContextHelper.h"
 
-SocketUwp::ContextHelper::ContextHelper(
+using namespace SocketUwp;
+
+ContextHelper::ContextHelper(
     IAsyncThreadPage^ page) :
     page_{ std::move(page) }
 {
 }
 
-SocketUwp::String^
-SocketUwp::ContextHelper::ReadString(
+String^
+ContextHelper::ReadString(
     DataReader^ dataReader)
 {
     auto strLen = static_cast<unsigned int>(dataReader->UnconsumedBufferLength);

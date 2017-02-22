@@ -2,16 +2,18 @@
 #include <utility>
 #include "ClientContextHelper.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::ClientContextHelper::ClientContextHelper(
+ClientContextHelper::ClientContextHelper(
     IAsyncThreadPage^ page) :
     ContextHelper{ std::move(page) }
 {
 }
 
 void
-SocketUwp::ClientContextHelper::SendMessage(
+ClientContextHelper::SendMessage(
     DataWriter^ dataWriter,
     bool        withMsgLen,
     String^     msg)
@@ -51,7 +53,7 @@ SocketUwp::ClientContextHelper::SendMessage(
 }
 
 void
-SocketUwp::ClientContextHelper::Receive(
+ClientContextHelper::Receive(
     DataReader^  dataReader,
     unsigned int strLen)
 {

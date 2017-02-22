@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "DatagramClientContext.h"
 
+using namespace SocketUwp;
+
 using namespace Concurrency;
 
-SocketUwp::DatagramClientContext::DatagramClientContext(
+DatagramClientContext::DatagramClientContext(
     IAsyncThreadPage^  page,
     DatagramSocket^    client,
     ClientContextArgs^ args) :
@@ -13,7 +15,7 @@ SocketUwp::DatagramClientContext::DatagramClientContext(
 {
 }
 
-SocketUwp::DatagramClientContext::~DatagramClientContext()
+DatagramClientContext::~DatagramClientContext()
 {
     // A Client can be closed in two ways:
     //  - explicitly: using the 'delete' keyword (client is closed even if there are outstanding references to it).
@@ -31,7 +33,7 @@ SocketUwp::DatagramClientContext::~DatagramClientContext()
 }
 
 void
-SocketUwp::DatagramClientContext::Connect_Click(
+DatagramClientContext::Connect_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
@@ -79,7 +81,7 @@ SocketUwp::DatagramClientContext::Connect_Click(
 }
 
 void
-SocketUwp::DatagramClientContext::Send_Click(
+DatagramClientContext::Send_Click(
     Object^          sender,
     RoutedEventArgs^ e,
     String^          input)
@@ -88,7 +90,7 @@ SocketUwp::DatagramClientContext::Send_Click(
 }
 
 void
-SocketUwp::DatagramClientContext::OnMessage(
+DatagramClientContext::OnMessage(
     DatagramSocket^           socket,
     MessageReceivedEventArgs^ eventArgs)
 {
@@ -121,8 +123,8 @@ SocketUwp::DatagramClientContext::OnMessage(
     }
 }
 
-SocketUwp::DataWriter^
-SocketUwp::DatagramClientContext::GetDataWriter()
+DataWriter^
+DatagramClientContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {

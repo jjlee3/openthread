@@ -9,26 +9,20 @@
 #include "ClientControl.xaml.h"
 #include "Configurations.h"
 
+using namespace SocketUwp;
+
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-SocketUwp::MainPage::MainPage()
+MainPage::MainPage()
 {
     InitializeComponent();
 
-    if (g_configurations.protocol == Protocol::TCP)
-    {
-        TcpRadio->IsChecked = true;
-    }
-    else
-    {
-        UdpRadio->IsChecked = true;
-    }
-
+    UdpRadio->IsChecked = g_configurations.protocol == Protocol::TCP;
     ServerRadio->IsChecked = true;
 }
 
 void
-SocketUwp::MainPage::NotifyFromAsyncThread(
+MainPage::NotifyFromAsyncThread(
     String^    message,
     NotifyType type)
 {
@@ -40,7 +34,7 @@ SocketUwp::MainPage::NotifyFromAsyncThread(
 }
 
 void
-SocketUwp::MainPage::Notify(
+MainPage::Notify(
     String^    message,
     NotifyType type)
 {
@@ -70,7 +64,7 @@ SocketUwp::MainPage::Notify(
 }
 
 void
-SocketUwp::MainPage::Protocol_Changed(
+MainPage::Protocol_Changed(
     Object^          sender,
     RoutedEventArgs^ e)
 {
@@ -88,7 +82,7 @@ SocketUwp::MainPage::Protocol_Changed(
 }
 
 void
-SocketUwp::MainPage::Role_Changed(
+MainPage::Role_Changed(
     Object^          sender,
     RoutedEventArgs^ e)
 {
