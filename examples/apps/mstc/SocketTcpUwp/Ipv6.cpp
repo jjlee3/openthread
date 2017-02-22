@@ -2,8 +2,10 @@
 #include <string>
 #include "Ipv6.h"
 
+using namespace SocketTcpUwp;
+
 bool
-SocketTcpUwp::Ipv6::IsValidAddress(
+Ipv6::IsValidAddress(
     String^ ipv6Addr)
 {
     // 0 ~ 9 : a ~ f A ~ F

@@ -2,16 +2,18 @@
 #include <utility>
 #include "ClientContext.h"
 
+using namespace SocketTcpUwp;
+
 using namespace Concurrency;
 
-SocketTcpUwp::ClientContext::ClientContext(
+ClientContext::ClientContext(
     IAsyncThreadPage^ page,
     StreamSocket^     client) :
     page_{ std::move(page) }, client_{ std::move(client) }
 {
 }
 
-SocketTcpUwp::ClientContext::~ClientContext()
+ClientContext::~ClientContext()
 {
     if (client_ != nullptr)
     {
@@ -21,7 +23,7 @@ SocketTcpUwp::ClientContext::~ClientContext()
 }
 
 void
-SocketTcpUwp::ClientContext::OnConnection(
+ClientContext::OnConnection(
     StreamSocket^ client)
 {
     connected_ = true;
@@ -29,7 +31,7 @@ SocketTcpUwp::ClientContext::OnConnection(
 }
 
 void
-SocketTcpUwp::ClientContext::SendMessage(
+ClientContext::SendMessage(
     String^ msg)
 {
     if (!IsConnected())
@@ -68,8 +70,8 @@ SocketTcpUwp::ClientContext::SendMessage(
     });
 }
 
-SocketTcpUwp::DataReader^
-SocketTcpUwp::ClientContext::GetDataReader()
+DataReader^
+ClientContext::GetDataReader()
 {
     if (dataReader_ == nullptr)
     {
@@ -79,8 +81,8 @@ SocketTcpUwp::ClientContext::GetDataReader()
     return dataReader_;
 }
 
-SocketTcpUwp::DataWriter^
-SocketTcpUwp::ClientContext::GetDataWriter()
+DataWriter^
+ClientContext::GetDataWriter()
 {
     if (dataWriter_ == nullptr)
     {
@@ -91,7 +93,7 @@ SocketTcpUwp::ClientContext::GetDataWriter()
 }
 
 void
-SocketTcpUwp::ClientContext::ReceiveLoop(
+ClientContext::ReceiveLoop(
     StreamSocket^ socket,
     DataReader^   dataReader)
 {

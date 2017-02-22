@@ -2,7 +2,7 @@
 
 namespace SocketTcpUwp
 {
-    public enum struct NotifyType
+    public enum class NotifyType
     {
         Status,
         Error,

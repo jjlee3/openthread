@@ -8,18 +8,21 @@
 #include "ServerControl.xaml.h"
 #include "ClientControl.xaml.h"
 
+using namespace SocketTcpUwp;
+
 using namespace Windows::UI::Core;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-SocketTcpUwp::MainPage::MainPage()
+MainPage::MainPage()
 {
-	InitializeComponent();
+    InitializeComponent();
+
     ServerRadio->IsChecked = true;
 }
 
 void
-SocketTcpUwp::MainPage::NotifyFromAsyncThread(
+MainPage::NotifyFromAsyncThread(
     String^    message,
     NotifyType type)
 {
@@ -31,7 +34,7 @@ SocketTcpUwp::MainPage::NotifyFromAsyncThread(
 }
 
 void
-SocketTcpUwp::MainPage::Notify(
+MainPage::Notify(
     String^    message,
     NotifyType type)
 {
@@ -61,7 +64,7 @@ SocketTcpUwp::MainPage::Notify(
 }
 
 void
-SocketTcpUwp::MainPage::Role_Changed(
+MainPage::Role_Changed(
     Object^          sender,
     RoutedEventArgs^ e)
 {

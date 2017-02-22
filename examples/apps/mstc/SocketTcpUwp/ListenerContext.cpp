@@ -3,9 +3,11 @@
 #include <utility>
 #include "ListenerContext.h"
 
+using namespace SocketTcpUwp;
+
 using namespace Concurrency;
 
-SocketTcpUwp::ListenerContext::ListenerContext(
+ListenerContext::ListenerContext(
     IAsyncThreadPage^     page,
     StreamSocketListener^ listener,
     String^               serverName) :
@@ -13,7 +15,7 @@ SocketTcpUwp::ListenerContext::ListenerContext(
 {
 }
 
-SocketTcpUwp::ListenerContext::~ListenerContext()
+ListenerContext::~ListenerContext()
 {
     if (listener_ != nullptr)
     {
@@ -23,7 +25,7 @@ SocketTcpUwp::ListenerContext::~ListenerContext()
 }
 
 void
-SocketTcpUwp::ListenerContext::OnConnection(
+ListenerContext::OnConnection(
     StreamSocketListener^        listener,
     ConnectionReceivedEventArgs^ args)
 {
@@ -34,7 +36,7 @@ SocketTcpUwp::ListenerContext::OnConnection(
 }
 
 void
-SocketTcpUwp::ListenerContext::ReceiveLoop(
+ListenerContext::ReceiveLoop(
     StreamSocket^ socket,
     DataReader^   dataReader,
     DataWriter^   dataWriter)
@@ -91,7 +93,7 @@ SocketTcpUwp::ListenerContext::ReceiveLoop(
 }
 
 void
-SocketTcpUwp::ListenerContext::EchoMessage(
+ListenerContext::EchoMessage(
     DataReader^ dataReader,
     DataWriter^ dataWriter)
 {
