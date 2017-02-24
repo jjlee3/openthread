@@ -40,6 +40,8 @@
                 GroupName="RoleGroup" Checked="Role_Changed"
                 Margin="0,0,20,0"/>
         </StackPanel>
+        <local:ServerControl x:Name="ServerRole"  Grid.Row="4" Visibility="Collapsed"/>
+        <local:ClientControl x:Name="ClientRole"  Grid.Row="4" Visibility="Collapsed"/>
         <Border x:Name="StatusBorder" Grid.Row="6">
             <TextBlock
                 x:Name="StatusBlock"

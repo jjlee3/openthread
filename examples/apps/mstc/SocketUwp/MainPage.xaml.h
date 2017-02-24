@@ -34,8 +34,5 @@ namespace SocketUwp
 
         // change role from server client (or vice versa)
         void Role_Changed(Object^ sender, RoutedEventArgs^ e);
-
-        // (server or client) control position in MainPageGrid->Children
-        int roleCtrlIndex_ = -1;
     };
 }

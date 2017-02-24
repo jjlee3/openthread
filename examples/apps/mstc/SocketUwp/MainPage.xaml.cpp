@@ -17,6 +17,8 @@ MainPage::MainPage()
 {
     InitializeComponent();
 
+    ServerRole->Init(this);
+    ClientRole->Init(this);
     TcpRadio->IsChecked = g_configurations.protocol == Protocol::TCP;
     ServerRadio->IsChecked = true;
 }
@@ -55,11 +57,11 @@ MainPage::Notify(
     // Collapse the StatusBlock if it has no text to conserve real estate.
     if (StatusBlock->Text != "")
     {
-        StatusBorder->Visibility = Windows::UI::Xaml::Visibility::Visible;
+        StatusBorder->Visibility = WUX::Visibility::Visible;
     }
     else
     {
-        StatusBorder->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+        StatusBorder->Visibility = WUX::Visibility::Collapsed;
     }
 }
 
@@ -89,35 +91,14 @@ MainPage::Role_Changed(
     auto radioBtn = dynamic_cast<RadioButton^>(sender);
     if (!radioBtn) { return; }
 
-    UserControl^ ctrl;
-
     if (radioBtn == ServerRadio)
     {
-        auto serverCtrl = ref new ServerControl();
-        serverCtrl->Init(this);
-        ctrl = serverCtrl;
+        ClientRole->Visibility = WUX::Visibility::Collapsed;
+        ServerRole->Visibility = WUX::Visibility::Visible;
     }
     else
     {
-        auto clientCtrl = ref new ClientControl();
-        clientCtrl->Init(this);
-        ctrl = clientCtrl;
+        ClientRole->Visibility = WUX::Visibility::Visible;
+        ServerRole->Visibility = WUX::Visibility::Collapsed;
     }
-
-    // remove an old control (client or server)
-    if (roleCtrlIndex_ >= 0)
-    {
-        MainPageGrid->Children->RemoveAt(roleCtrlIndex_);
-    }
-
-    // add a new control (client or server)
-    Grid::SetRow(ctrl, ROLE_POS_ROW);
-    Grid::SetColumn(ctrl, ROLE_POS_COL);
-    MainPageGrid->Children->Append(ctrl);
-
-    // record the new contol index
-    // to be removed at next time
-    unsigned int index = -1;
-    auto ok = MainPageGrid->Children->IndexOf(ctrl, &index);
-    if (ok) { roleCtrlIndex_ = index; }
 }
