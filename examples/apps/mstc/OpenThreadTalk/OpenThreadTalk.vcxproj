@@ -103,37 +103,67 @@
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>OTDLL;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>..\..\..\..\build\bin\$(Platform)\$(Configuration)\dll\otApi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ClientArgs.h" />
@@ -147,12 +177,34 @@
     <ClInclude Include="DatagramClientContext.h" />
     <ClInclude Include="DatagramListenerContext.h" />
     <ClInclude Include="Factory.h" />
+    <ClInclude Include="GuidHelper.h" />
     <ClInclude Include="IAsyncThreadPage.h" />
     <ClInclude Include="IClientContext.h" />
+    <ClInclude Include="IMainPageUIElements.h" />
+    <ClInclude Include="InternalThreadDeviceList.h" />
     <ClInclude Include="IListenerContext.h" />
+    <ClInclude Include="IThreadDeviceList.h" />
+    <ClInclude Include="IInterfaceUIElements.h" />
+    <ClInclude Include="TalkGrid.xaml.h">
+      <DependentUpon>TalkGrid.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="ThreadGlobals.h" />
+    <ClInclude Include="ThreadGrid.xaml.h">
+      <DependentUpon>ThreadGrid.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="ThreadInterface.xaml.h">
+      <DependentUpon>ThreadInterface.xaml</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Ipv6.h" />
     <ClInclude Include="ListenerArgs.h" />
     <ClInclude Include="ListenerContextHelper.h" />
+    <ClInclude Include="OtApiInstance.h" />
+    <ClInclude Include="OtDevice.h" />
+    <ClInclude Include="OtDeviceRole.h" />
+    <ClInclude Include="OtEnumDevices.h" />
+    <ClInclude Include="OtExtAddr.h" />
+    <ClInclude Include="OtMemory.h" />
+    <ClInclude Include="OtMeshLocalEid.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
@@ -167,6 +219,12 @@
     <ClInclude Include="StreamClientContextHelper.h" />
     <ClInclude Include="StreamListenerContext.h" />
     <ClInclude Include="StreamListenerContextHelper.h" />
+    <ClInclude Include="ThreadInterfaceConfiguration.xaml.h">
+      <DependentUpon>ThreadInterfaceConfiguration.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="ThreadInterfaceDetails.xaml.h">
+      <DependentUpon>ThreadInterfaceDetails.xaml</DependentUpon>
+    </ClInclude>
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -176,10 +234,25 @@
     <Page Include="ClientControl.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="TalkGrid.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ThreadGrid.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ThreadInterface.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Include="ServerControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ThreadInterfaceConfiguration.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ThreadInterfaceDetails.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
@@ -211,11 +284,28 @@
     <ClCompile Include="DatagramClientContext.cpp" />
     <ClCompile Include="DatagramListenerContext.cpp" />
     <ClCompile Include="Factory.cpp" />
+    <ClCompile Include="GuidHelper.cpp" />
+    <ClCompile Include="TalkGrid.xaml.cpp">
+      <DependentUpon>TalkGrid.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="ThreadGlobals.cpp" />
+    <ClCompile Include="ThreadGrid.xaml.cpp">
+      <DependentUpon>ThreadGrid.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="ThreadInterface.xaml.cpp">
+      <DependentUpon>ThreadInterface.xaml</DependentUpon>
+    </ClCompile>
     <ClCompile Include="Ipv6.cpp" />
     <ClCompile Include="ListenerContextHelper.cpp" />
     <ClCompile Include="MainPage.xaml.cpp">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClCompile>
+    <ClCompile Include="OtApiInstance.cpp" />
+    <ClCompile Include="OtDevice.cpp" />
+    <ClCompile Include="OtDeviceRole.cpp" />
+    <ClCompile Include="OtEnumDevices.cpp" />
+    <ClCompile Include="OtExtAddr.cpp" />
+    <ClCompile Include="OtMeshLocalEid.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -231,6 +321,12 @@
     <ClCompile Include="StreamClientContextHelper.cpp" />
     <ClCompile Include="StreamListenerContext.cpp" />
     <ClCompile Include="StreamListenerContextHelper.cpp" />
+    <ClCompile Include="ThreadInterfaceConfiguration.xaml.cpp">
+      <DependentUpon>ThreadInterfaceConfiguration.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="ThreadInterfaceDetails.xaml.cpp">
+      <DependentUpon>ThreadInterfaceDetails.xaml</DependentUpon>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,42 @@
+﻿<Grid
+    x:Class="OpenThreadTalk.ThreadGrid"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:OpenThreadTalk"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <!-- Interface List -->
+    <TextBlock
+                Text="Thread UX"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                FontSize="50"/>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+        <TextBlock
+                Text="Interfaces"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="40,90"
+                FontSize="25"/>
+        <Button
+            x:Name="Talk"
+            Content="Talk"
+            Margin="10,0"/>
+    </StackPanel>
+    <ListView
+                BorderBrush="Silver"
+                BorderThickness="1"
+                Name="InterfaceList"
+                Margin="40,130,0,0"
+                SelectionMode="None">
+    </ListView>
+    <local:ThreadInterfaceConfiguration
+                x:Name="ThrdInterfaceConfiguration"
+                Background="#B2FFFFFF"
+                Visibility="Collapsed"/>
+    <local:ThreadInterfaceDetails
+                x:Name="ThrdInterfaceDetails"
+                Background="#B2FFFFFF"
+                Visibility="Collapsed"/>
+</Grid>

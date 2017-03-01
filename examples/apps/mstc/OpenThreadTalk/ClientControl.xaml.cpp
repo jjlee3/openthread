@@ -25,9 +25,11 @@ ClientControl::ClientControl()
 
 void
 ClientControl::Init(
-    IAsyncThreadPage^ page)
+    IAsyncThreadPage^    page,
+    IMainPageUIElements^ mainPageUIElements)
 {
     page_ = page;
+    mainPageUIElements_ = mainPageUIElements;
 }
 
 void
@@ -132,4 +134,13 @@ ClientControl::Send_Click(
             "Sending message failed with error: " + ex->Message,
             NotifyType::Error);
     }
+}
+
+void
+ClientControl::Exit_Click(
+    Object^          sender,
+    RoutedEventArgs^ e)
+{
+    mainPageUIElements_->TalkGrid()->Visibility = WUX::Visibility::Collapsed;
+    mainPageUIElements_->ThreadGrid()->Visibility = WUX::Visibility::Visible;
 }

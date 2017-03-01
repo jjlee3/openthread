@@ -5,46 +5,26 @@
     xmlns:local="using:OpenThreadTalk"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
-    <Grid x:Name="MainPageGrid"
-        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-        Margin="20">
+    IsTabStop="False"
+    mc:Ignorable="d"
+    Margin="20">
+    <Grid>
+        <Grid.Background>
+            <ImageBrush ImageSource="ms-appx:///Assets/Wide310x150Logo.png" Opacity="0.25" Stretch="Uniform"/>
+        </Grid.Background>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel
-            Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
-            <RadioButton
-                x:Name="TcpRadio" Content="TCP"
-                GroupName="ProtocolGroup" Checked="Protocol_Changed"
-                Margin="0,0,20,0"/>
-            <RadioButton
-                x:Name="UdpRadio" Content="UDP"
-                GroupName="ProtocolGroup" Checked="Protocol_Changed"
-                Margin="0,0,20,0"/>
-        </StackPanel>
-        <StackPanel
-            Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Top">
-            <RadioButton
-                x:Name="ServerRadio" Content="Server"
-                GroupName="RoleGroup" Checked="Role_Changed"
-                Margin="0,0,20,0"/>
-            <RadioButton
-                x:Name="ClientRadio" Content="Client"
-                GroupName="RoleGroup" Checked="Role_Changed"
-                Margin="0,0,20,0"/>
-        </StackPanel>
-        <Border x:Name="StatusBorder" Grid.Row="6">
+        <local:ThreadGrid x:Name="ThrdGrid"/>
+        <local:TalkGrid x:Name="TlkGrid" Visibility="Collapsed"/>
+        <Border
+            x:Name="StatusBorder" Grid.Row="2">
             <TextBlock
                 x:Name="StatusBlock"
                 FontWeight="Bold"
-                Text=" "
+                Text=""
                 FontSize="16"
                 TextWrapping="Wrap"
                 MaxHeight="80"/>

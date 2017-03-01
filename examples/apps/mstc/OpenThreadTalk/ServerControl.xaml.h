@@ -9,6 +9,7 @@
 #include "Consts.h"
 #include "Types.h"
 #include "IAsyncThreadPage.h"
+#include "IMainPageUIElements.h"
 
 namespace OpenThreadTalk
 {
@@ -17,13 +18,17 @@ namespace OpenThreadTalk
     {
     public:
         ServerControl();
-        void Init(IAsyncThreadPage^ page);
+
+        void Init(IAsyncThreadPage^ page, IMainPageUIElements^ mainPageUIElements);
 
     private:
         static constexpr unsigned short DEF_PORT = Consts::DEF_SERVER_PORT;
 
         void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
-        IAsyncThreadPage^ page_;
+        void Exit_Click(Object^ sender, RoutedEventArgs^ e);
+
+        IAsyncThreadPage^    page_;
+        IMainPageUIElements^ mainPageUIElements_;
     };
 }

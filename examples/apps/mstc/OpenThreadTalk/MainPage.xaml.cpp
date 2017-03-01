@@ -5,9 +5,8 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
-#include "Configurations.h"
-#include "ServerControl.xaml.h"
-#include "ClientControl.xaml.h"
+#include "ThreadGrid.xaml.h"
+#include "TalkGrid.xaml.h"
 
 using namespace OpenThreadTalk;
 
@@ -17,8 +16,8 @@ MainPage::MainPage()
 {
     InitializeComponent();
 
-    TcpRadio->IsChecked = g_configurations.protocol == Protocol::TCP;
-    ServerRadio->IsChecked = true;
+    ThrdGrid->Init(this, this);
+    TlkGrid->Init(this, this);
 }
 
 void
@@ -55,69 +54,34 @@ MainPage::Notify(
     // Collapse the StatusBlock if it has no text to conserve real estate.
     if (StatusBlock->Text != "")
     {
-        StatusBorder->Visibility = Windows::UI::Xaml::Visibility::Visible;
+        StatusBorder->Visibility = WUX::Visibility::Visible;
     }
     else
     {
-        StatusBorder->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+        StatusBorder->Visibility = WUX::Visibility::Collapsed;
     }
 }
 
 void
-MainPage::Protocol_Changed(
-    Object^          sender,
-    RoutedEventArgs^ e)
+MainPage::OnNavigatedTo(
+    NavigationEventArgs^ e)
 {
-    auto radioBtn = dynamic_cast<RadioButton^>(sender);
-    if (!radioBtn) { return; }
-
-    if (radioBtn == TcpRadio)
-    {
-        g_configurations.protocol = Protocol::TCP;
-    }
-    else
-    {
-        g_configurations.protocol = Protocol::UDP;
-    }
+    Loaded += ref new RoutedEventHandler(this, &MainPage::OnLoaded);
+    Unloaded += ref new RoutedEventHandler(this, &MainPage::OnUnloaded);
 }
 
 void
-MainPage::Role_Changed(
+MainPage::OnLoaded(
     Object^          sender,
     RoutedEventArgs^ e)
 {
-    auto radioBtn = dynamic_cast<RadioButton^>(sender);
-    if (!radioBtn) { return; }
+    ThrdGrid->OnLoaded(sender, e);
+}
 
-    UserControl^ ctrl;
-
-    if (radioBtn == ServerRadio)
-    {
-        auto serverCtrl = ref new ServerControl();
-        serverCtrl->Init(this);
-        ctrl = serverCtrl;
-    }
-    else
-    {
-        auto clientCtrl = ref new ClientControl();
-        clientCtrl->Init(this);
-        ctrl = clientCtrl;
-    }
-
-    // remove an old control (client or server)
-    if (roleCtrlIndex_ >= 0)
-    {
-        MainPageGrid->Children->RemoveAt(roleCtrlIndex_);
-    }
-
-    // add a new control (client or server)
-    Grid::SetRow(ctrl, ROLE_POS_ROW);
-    Grid::SetColumn(ctrl, ROLE_POS_COL);
-    MainPageGrid->Children->Append(ctrl);
-
-    // record the new contol index
-    // to be removed at next time
-    unsigned int index = -1;
-    auto ok = MainPageGrid->Children->IndexOf(ctrl, &index);
-    if (ok) { roleCtrlIndex_ = index; }
+void
+MainPage::OnUnloaded(
+    Object^          sender,
+    RoutedEventArgs^ e)
+{
+    ThrdGrid->OnUnloaded(sender, e);
 }

@@ -30,6 +30,18 @@
     <ClCompile Include="StreamClientContextHelper.cpp" />
     <ClCompile Include="DatagramClientContext.cpp" />
     <ClCompile Include="DatagramListenerContext.cpp" />
+    <ClCompile Include="OtDevice.cpp" />
+    <ClCompile Include="OtDeviceRole.cpp" />
+    <ClCompile Include="OtApiInstance.cpp" />
+    <ClCompile Include="OtEnumDevices.cpp" />
+    <ClCompile Include="OtExtAddr.cpp" />
+    <ClCompile Include="OtMeshLocalEid.cpp" />
+    <ClCompile Include="ThreadInterface.xaml.cpp" />
+    <ClCompile Include="TalkPage.xaml.cpp" />
+    <ClCompile Include="ThreadInterfaceDetails.xaml.cpp" />
+    <ClCompile Include="GuidHelper.cpp" />
+    <ClCompile Include="ThreadGlobals.cpp" />
+    <ClCompile Include="ThreadInterfaceConfiguration.xaml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -56,6 +68,23 @@
     <ClInclude Include="StreamClientContextHelper.h" />
     <ClInclude Include="DatagramClientContext.h" />
     <ClInclude Include="DatagramListenerContext.h" />
+    <ClInclude Include="OtMemory.h" />
+    <ClInclude Include="OtDevice.h" />
+    <ClInclude Include="OtDeviceRole.h" />
+    <ClInclude Include="OtApiInstance.h" />
+    <ClInclude Include="OtEnumDevices.h" />
+    <ClInclude Include="OtExtAddr.h" />
+    <ClInclude Include="OtMeshLocalEid.h" />
+    <ClInclude Include="ThreadInterface.xaml.h" />
+    <ClInclude Include="TalkPage.xaml.h" />
+    <ClInclude Include="ThreadInterfaceDetails.xaml.h" />
+    <ClInclude Include="GuidHelper.h" />
+    <ClInclude Include="ThreadGlobals.h" />
+    <ClInclude Include="IThreadDeviceList.h" />
+    <ClInclude Include="InternalThreadDeviceList.h" />
+    <ClInclude Include="IInterfaceUIElements.h" />
+    <ClInclude Include="ThreadInterfaceConfiguration.xaml.h" />
+    <ClInclude Include="IMainPageUIElements.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">
@@ -90,5 +119,10 @@
     <Page Include="MainPage.xaml" />
     <Page Include="ServerControl.xaml" />
     <Page Include="ClientControl.xaml" />
+    <Page Include="ThreadInterface.xaml" />
+    <Page Include="ThreadInterfaceDetails.xaml" />
+    <Page Include="ThreadInterfaceConfiguration.xaml" />
+    <Page Include="ThreadGrid.xaml" />
+    <Page Include="TalkGrid.xaml" />
   </ItemGroup>
 </Project>

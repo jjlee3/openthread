@@ -35,8 +35,16 @@
         <TextBox
             Grid.Row="4" Grid.Column="2" x:Name="ServerPort" Width="75"
             HorizontalAlignment="Left"/>
-        <Button
-            Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Width="75" Content="Listen"
-            Click="Listen_Click"/>
+        <StackPanel
+            Orientation="Horizontal" VerticalAlignment="Top"
+            Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3">
+            <Button
+                Width="75" Content="Listen"
+                Click="Listen_Click"
+                Margin="0,0,75,0"/>
+            <Button
+                Width="75" Content="Exit"
+                Click="Exit_Click"/>
+        </StackPanel>
     </Grid>
 </UserControl>

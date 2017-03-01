@@ -24,9 +24,11 @@ ServerControl::ServerControl()
 
 void
 ServerControl::Init(
-    IAsyncThreadPage^ page)
+    IAsyncThreadPage^    page,
+    IMainPageUIElements^ mainPageUIElements)
 {
     page_ = page;
+    mainPageUIElements_ = mainPageUIElements;
 }
 
 void
@@ -71,4 +73,13 @@ ServerControl::Listen_Click(
             "Listening failed with input error: " + ex->Message,
             NotifyType::Error);
     }
+}
+
+void
+ServerControl::Exit_Click(
+    Object^          sender,
+    RoutedEventArgs^ e)
+{
+    mainPageUIElements_->TalkGrid()->Visibility = WUX::Visibility::Collapsed;
+    mainPageUIElements_->ThreadGrid()->Visibility = WUX::Visibility::Visible;
 }

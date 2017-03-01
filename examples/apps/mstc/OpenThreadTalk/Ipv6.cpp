@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <string>
+#include <algorithm>
 #include "Ipv6.h"
 
 using namespace OpenThreadTalk;
@@ -43,4 +43,24 @@ Ipv6::IsValidAddress(
 
         return false;
     });
+}
+
+int
+Ipv6::ToStringA(
+    char*           buffer,
+    size_t          sizeBuffer,
+    const in6_addr& in6addr)
+{
+    ::RtlIpv6AddressToStringA(&in6addr, buffer);
+    return static_cast<int>(strlen(buffer));
+}
+
+int
+Ipv6::ToStringW(
+    wchar_t*        buffer,
+    size_t          sizeBuffer,
+    const in6_addr& in6addr)
+{
+    ::RtlIpv6AddressToStringW(&in6addr, buffer);
+    return static_cast<int>(wcslen(buffer));
 }
