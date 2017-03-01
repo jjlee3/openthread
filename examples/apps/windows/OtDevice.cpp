@@ -20,7 +20,7 @@ ot::KDevice::KDevice(
     const GUID*    devGuid) :
     KMemory{::otInstanceInit(pApiInstance, devGuid)}
 {
-    if (!res_) { throw Exception("KDevice::KDevice otInstanceInit (device) Failure"); }
+    if (res_ == invalid()) { throw Exception("KDevice::KDevice otInstanceInit (device) Failure"); }
 }
 #else
 #ifdef OPENTHREAD_MULTIPLE_INSTANCE
@@ -46,7 +46,7 @@ ot::KDevice::~KDevice()
 void
 ot::KDevice::close() noexcept
 {
-    if (!res_) { return; }
+    if (res_ == invalid()) { return; }
 
     std::for_each(multiMap_.begin(), multiMap_.end(),
         [this](const auto& it)

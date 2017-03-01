@@ -12,5 +12,8 @@ ot::KMeshLocalEid::KMeshLocalEid(
     otInstance* pDevice) :
     KMemory{::otGetMeshLocalEid(pDevice)}
 {
-    if (!res_) { throw Exception("KMeshLocalEid::KMeshLocalEid otGetMeshLocalEid Failure"); }
+    if (res_ == invalid())
+    {
+        throw Exception("KMeshLocalEid::KMeshLocalEid otGetMeshLocalEid Failure");
+    }
 }

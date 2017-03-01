@@ -68,7 +68,7 @@ namespace ot
 
         void close()
         {
-            if (!res_) { return; }
+            if (res_ == invalid()) { return; }
 
 #ifdef OTDLL
             ::otFreeMemory(res_);

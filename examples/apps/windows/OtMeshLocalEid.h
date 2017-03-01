@@ -32,4 +32,4 @@ namespace ot
     };
 }
 
-#endif // _OT_DEVICE_H_
+#endif // _OT_MESH_LOCAL_EID_H_

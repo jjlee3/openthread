@@ -12,5 +12,8 @@ ot::KExtendedAddress::KExtendedAddress(
     otInstance* pDevice) :
     KMemory{::otGetExtendedAddress(pDevice)}
 {
-    if (!res_) { throw Exception("KExtendedAddress::KExtendedAddress otGetExtendedAddress Failure"); }
+    if (res_ == invalid())
+    {
+        throw Exception("KExtendedAddress::KExtendedAddress otGetExtendedAddress Failure");
+    }
 }
