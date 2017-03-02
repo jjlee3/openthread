@@ -17,6 +17,8 @@ namespace OpenThreadTalk
 
         virtual void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
+        virtual void CancelIO();
+
     private:
         using Listener = StreamSocketListener;
         using Args = ListenerArgs;

@@ -19,6 +19,8 @@ namespace OpenThreadTalk
 
         virtual void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
 
+        virtual void CancelIO();
+
     private:
         using Args = ClientArgs;
         using Helper = StreamClientContextHelper;

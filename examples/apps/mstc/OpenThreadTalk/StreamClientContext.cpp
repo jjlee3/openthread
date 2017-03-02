@@ -39,6 +39,15 @@ StreamClientContext::Connect_Click(
 {
     if (CoreApplication::Properties->HasKey("clientContext"))
     {
+        auto clientContext = dynamic_cast<IClientContext^>(
+            CoreApplication::Properties->Lookup("clientContext"));
+        if (clientContext == nullptr)
+        {
+            throw ref new FailureException(L"No clientContext");
+        }
+
+        clientContext->CancelIO();
+
         CoreApplication::Properties->Remove("clientContext");
     }
 
@@ -84,6 +93,12 @@ StreamClientContext::Send_Click(
     String^          input)
 {
     helper_.SendMessage(GetDataWriter(), true, input);
+}
+
+void
+StreamClientContext::CancelIO()
+{
+    client_->CancelIOAsync();
 }
 
 void

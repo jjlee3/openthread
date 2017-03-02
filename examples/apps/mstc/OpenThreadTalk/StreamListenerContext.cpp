@@ -40,6 +40,15 @@ StreamListenerContext::Listen_Click(
 {
     if (CoreApplication::Properties->HasKey("listenerContext"))
     {
+        auto listenerContext = dynamic_cast<IListenerContext^>(
+            CoreApplication::Properties->Lookup("listenerContext"));
+        if (listenerContext == nullptr)
+        {
+            throw ref new FailureException(L"No listenerContext");
+        }
+
+        listenerContext->CancelIO();
+
         CoreApplication::Properties->Remove("listenerContext");
     }
 
@@ -70,6 +79,12 @@ StreamListenerContext::Listen_Click(
                 NotifyType::Error);
         }
     });
+}
+
+void
+StreamListenerContext::CancelIO()
+{
+    listener_->CancelIOAsync();
 }
 
 void

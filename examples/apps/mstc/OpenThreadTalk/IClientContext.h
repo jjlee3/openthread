@@ -9,5 +9,7 @@ namespace OpenThreadTalk
         void Connect_Click(Object^ sender, RoutedEventArgs^ e);
 
         void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
+
+        void CancelIO();
     };
 }
