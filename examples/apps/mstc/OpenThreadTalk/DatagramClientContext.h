@@ -19,7 +19,7 @@ namespace OpenThreadTalk
 
         virtual void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
 
-        virtual void CancelIO();
+        virtual IAsyncAction^ CancelIO();
 
     private:
         using Args = ClientArgs;

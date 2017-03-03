@@ -10,6 +10,6 @@ namespace OpenThreadTalk
 
         void Send_Click(Object^ sender, RoutedEventArgs^ e, String^ input);
 
-        void CancelIO();
+        IAsyncAction^ CancelIO();
     };
 }

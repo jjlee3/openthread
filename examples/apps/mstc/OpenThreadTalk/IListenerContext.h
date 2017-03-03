@@ -8,6 +8,6 @@ namespace OpenThreadTalk
     {
         void Listen_Click(Object^ sender, RoutedEventArgs^ e);
 
-        void CancelIO();
+        IAsyncAction^ CancelIO();
     };
 }

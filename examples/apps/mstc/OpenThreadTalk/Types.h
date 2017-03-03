@@ -25,6 +25,7 @@ namespace OpenThreadTalk
 
     using CoreApplication = WAC::CoreApplication;
     using EventRegistrationToken = WF::EventRegistrationToken;
+    using IAsyncAction = WF::IAsyncAction;
     using EndpointPair = WN::EndpointPair;
     using HostName = WN::HostName;
     using SocketError = WNS::SocketError;

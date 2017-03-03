@@ -37,6 +37,8 @@ StreamClientContext::Connect_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
+    task<void> removeContext;
+
     if (CoreApplication::Properties->HasKey("clientContext"))
     {
         auto clientContext = dynamic_cast<IClientContext^>(
@@ -46,43 +48,68 @@ StreamClientContext::Connect_Click(
             throw ref new FailureException(L"No clientContext");
         }
 
-        clientContext->CancelIO();
-
-        CoreApplication::Properties->Remove("clientContext");
+        removeContext = create_task(clientContext->CancelIO()).then(
+            []()
+        {
+            CoreApplication::Properties->Remove("clientContext");
+        });
+    }
+    else
+    {
+        removeContext = create_task([]() {});
     }
 
-    // Events cannot be hooked up directly to the ScenarioInput2 object, as the object can fall out-of-scope and be
-    // deleted. This would render any event hooked up to the object ineffective. The ClientContext guarantees that
-    // both the socket and object that serves its events have the same lifetime.
-    CoreApplication::Properties->Insert("clientContext", this);
-
-    auto endpointPair = ref new EndpointPair(args_->ClientHostName, args_->ClientPort,
-        args_->ServerHostName, args_->ServerPort);
-
-    create_task(client_->ConnectAsync(endpointPair)).then(
-        [this, endpointPair](task<void> prevTask)
+    removeContext.then([this](task<void> prevTask)
     {
         try
         {
             // Try getting an exception.
             prevTask.get();
-            helper_.NotifyFromAsyncThread(
-                "Connect from " + endpointPair->LocalHostName->CanonicalName +
-                " to " + endpointPair->RemoteHostName->CanonicalName,
-                NotifyType::Status);
-            OnConnection(client_);
+
+            // Events cannot be hooked up directly to the ScenarioInput2 object, as the object can fall out-of-scope and be
+            // deleted. This would render any event hooked up to the object ineffective. The ClientContext guarantees that
+            // both the socket and object that serves its events have the same lifetime.
+            CoreApplication::Properties->Insert("clientContext", this);
         }
         catch (Exception^ ex)
         {
-            CoreApplication::Properties->Remove("clientContext");
             helper_.NotifyFromAsyncThread(
-                "Start binding failed with error: " + ex->Message,
+                "Remove clientContext error: " + ex->Message,
                 NotifyType::Error);
         }
         catch (task_canceled&)
         {
-            CoreApplication::Properties->Remove("clientContext");
         }
+    }).then([this]()
+    {
+        auto endpointPair = ref new EndpointPair(args_->ClientHostName, args_->ClientPort,
+            args_->ServerHostName, args_->ServerPort);
+
+        create_task(client_->ConnectAsync(endpointPair)).then(
+            [this, endpointPair](task<void> prevTask)
+        {
+            try
+            {
+                // Try getting an exception.
+                prevTask.get();
+                helper_.NotifyFromAsyncThread(
+                    "Connect from " + endpointPair->LocalHostName->CanonicalName +
+                    " to " + endpointPair->RemoteHostName->CanonicalName,
+                    NotifyType::Status);
+                OnConnection(client_);
+            }
+            catch (Exception^ ex)
+            {
+                CoreApplication::Properties->Remove("clientContext");
+                helper_.NotifyFromAsyncThread(
+                    "Start binding failed with error: " + ex->Message,
+                    NotifyType::Error);
+            }
+            catch (task_canceled&)
+            {
+                CoreApplication::Properties->Remove("clientContext");
+            }
+        });
     });
 }
 
@@ -95,10 +122,10 @@ StreamClientContext::Send_Click(
     helper_.SendMessage(GetDataWriter(), true, input);
 }
 
-void
+IAsyncAction^
 StreamClientContext::CancelIO()
 {
-    client_->CancelIOAsync();
+    return client_->CancelIOAsync();
 }
 
 void

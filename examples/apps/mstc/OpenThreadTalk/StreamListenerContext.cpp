@@ -38,6 +38,8 @@ StreamListenerContext::Listen_Click(
     Object^          sender,
     RoutedEventArgs^ e)
 {
+    task<void> removeContext;
+
     if (CoreApplication::Properties->HasKey("listenerContext"))
     {
         auto listenerContext = dynamic_cast<IListenerContext^>(
@@ -47,44 +49,69 @@ StreamListenerContext::Listen_Click(
             throw ref new FailureException(L"No listenerContext");
         }
 
-        listenerContext->CancelIO();
-
-        CoreApplication::Properties->Remove("listenerContext");
+        removeContext = create_task(listenerContext->CancelIO()).then(
+            []()
+        {
+            CoreApplication::Properties->Remove("listenerContext");
+        });
+    }
+    else
+    {
+        removeContext = create_task([]() {});
     }
 
     listener_->ConnectionReceived += ref new ConnectionHandler(
         this, &StreamListenerContext::OnConnection);
 
-    // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be
-    // deleted. This would render any event hooked up to the object ineffective. The ListenerContext guarantees that
-    // both the listener and object that serves its events have the same lifetime.
-    CoreApplication::Properties->Insert("listenerContext", this);
-
-    create_task(listener_->BindEndpointAsync(args_->ServerHostName, args_->ServerPort)).then(
-        [this](task<void> prevTask)
+    removeContext.then([this](task<void> prevTask)
     {
         try
         {
             // Try getting an exception.
             prevTask.get();
-            helper_.NotifyFromAsyncThread(
-                "Listening on address " + args_->ServerHostName->CanonicalName,
-                NotifyType::Status);
+
+            // Events cannot be hooked up directly to the ScenarioInput1 object, as the object can fall out-of-scope and be
+            // deleted. This would render any event hooked up to the object ineffective. The ListenerContext guarantees that
+            // both the listener and object that serves its events have the same lifetime.
+            CoreApplication::Properties->Insert("listenerContext", this);
         }
         catch (Exception^ ex)
         {
-            CoreApplication::Properties->Remove("listenerContext");
             helper_.NotifyFromAsyncThread(
-                "Start listening failed with error: " + ex->Message,
+                "Remove listenerContext error: " + ex->Message,
                 NotifyType::Error);
         }
+        catch (task_canceled&)
+        {
+        }
+    }).then([this]()
+    {
+        create_task(listener_->BindEndpointAsync(args_->ServerHostName, args_->ServerPort)).then(
+            [this](task<void> prevTask)
+        {
+            try
+            {
+                // Try getting an exception.
+                prevTask.get();
+                helper_.NotifyFromAsyncThread(
+                    "Listening on address " + args_->ServerHostName->CanonicalName,
+                    NotifyType::Status);
+            }
+            catch (Exception^ ex)
+            {
+                CoreApplication::Properties->Remove("listenerContext");
+                helper_.NotifyFromAsyncThread(
+                    "Start listening failed with error: " + ex->Message,
+                    NotifyType::Error);
+            }
+        });
     });
 }
 
-void
+IAsyncAction^
 StreamListenerContext::CancelIO()
 {
-    listener_->CancelIOAsync();
+    return listener_->CancelIOAsync();
 }
 
 void
