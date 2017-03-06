@@ -9,6 +9,9 @@ namespace OpenThreadTalk
     class Ipv6
     {
     public:
+        // according to ::RtlIpv6AddressToString spec
+        static constexpr size_t IPV6_ADDR_BUF_SIZE = 46;
+
         // not a complete check but it is OK
         static bool IsValidAddress(String^ ipv6Addr);
 

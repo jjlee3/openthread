@@ -44,6 +44,10 @@ Ipv6::ToStringA(
     size_t          sizeBuffer,
     const in6_addr& in6addr)
 {
+    if (sizeBuffer < IPV6_ADDR_BUF_SIZE)
+    {
+        throw ref new InvalidArgumentException(L"Buffer Size Too Small");
+    }
     ::RtlIpv6AddressToStringA(&in6addr, buffer);
     return static_cast<int>(strlen(buffer));
 }
@@ -54,6 +58,10 @@ Ipv6::ToStringW(
     size_t          sizeBuffer,
     const in6_addr& in6addr)
 {
+    if (sizeBuffer < IPV6_ADDR_BUF_SIZE)
+    {
+        throw ref new InvalidArgumentException(L"Buffer Size Too Small");
+    }
     ::RtlIpv6AddressToStringW(&in6addr, buffer);
     return static_cast<int>(wcslen(buffer));
 }
