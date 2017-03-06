@@ -84,9 +84,9 @@ ApiInstance::close() noexcept
 
 #ifdef OTDLL
     std::for_each(multiMap_.begin(), multiMap_.end(),
-        [this](const auto& it)
+        [this](const auto& e)
     {
-        ::otSetDeviceAvailabilityChangedCallback(res_, nullptr, nullptr);
+        ::otSetDeviceAvailabilityChangedCallback(res_, e.first, nullptr);
     });
     multiMap_.clear();
 
@@ -126,8 +126,8 @@ ApiInstance::RemoveDeviceAvailabilityChangedCallback(
     {
         if (it->second != context) { continue; }
 
+        ::otSetDeviceAvailabilityChangedCallback(res_, it->first, nullptr);
         multiMap_.erase(it);
-        ::otSetDeviceAvailabilityChangedCallback(res_, nullptr, nullptr);
         return;
     }
 #endif

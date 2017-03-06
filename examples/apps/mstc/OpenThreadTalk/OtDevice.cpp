@@ -37,9 +37,9 @@ Device::close() noexcept
     if (res_ == invalid()) { return; }
 
     std::for_each(multiMap_.begin(), multiMap_.end(),
-        [this](const auto& it)
+        [this](const auto& e)
     {
-        ::otRemoveStateChangeCallback(res_, it.first, it.second);
+        ::otRemoveStateChangeCallback(res_, e.first, e.second);
     });
     multiMap_.clear();
 
@@ -95,8 +95,8 @@ Device::RemoveStateChangeCallback(
     {
         if (it->second != context) { continue; }
 
-        multiMap_.erase(it);
         ::otRemoveStateChangeCallback(res_, callback, context);
+        multiMap_.erase(it);
         return;
     }
 }

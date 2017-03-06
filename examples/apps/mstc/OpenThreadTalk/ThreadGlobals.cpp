@@ -33,8 +33,8 @@ ThreadGlobals::Find(
 
 void OTCALL
 ThreadGlobals::ThreadDeviceAvailabilityCallback(
-    bool        added,
-    const GUID* devGuid,
+    bool        /*added*/,
+    const GUID* /*devGuid*/,
     void*       context)
 {
     reinterpret_cast<ThreadGlobals*>(context)->DeviceChangeCallback();
