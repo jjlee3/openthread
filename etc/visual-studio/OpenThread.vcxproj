@@ -59,15 +59,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\examples\apps\windows\OtApiInstance.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtDevice.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtEnumDevices.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtExtAddr.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtFailure.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtFormat.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtInterface.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtMemory.h" />
-    <ClInclude Include="..\..\examples\apps\windows\OtMeshLocalEid.h" />
+    <ClInclude Include="..\..\examples\apps\windows\otAdapter.h" />
+    <ClInclude Include="..\..\examples\apps\windows\otApi.h" />
     <ClInclude Include="..\..\examples\apps\windows\pch.h" />
     <ClInclude Include="..\..\examples\apps\windows\App.xaml.h">
       <DependentUpon>..\..\examples\apps\windows\App.xaml</DependentUpon>
@@ -106,13 +99,6 @@
     <ClCompile Include="..\..\examples\apps\windows\MainPage.xaml.cpp">
       <DependentUpon>..\..\examples\apps\windows\MainPage.xaml</DependentUpon>
     </ClCompile>
-    <ClCompile Include="..\..\examples\apps\windows\OtApiInstance.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtDevice.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtEnumDevices.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtExtAddr.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtFormat.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtInterface.cpp" />
-    <ClCompile Include="..\..\examples\apps\windows\OtMeshLocalEid.cpp" />
     <ClCompile Include="..\..\examples\apps\windows\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

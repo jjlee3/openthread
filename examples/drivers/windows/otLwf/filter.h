@@ -93,10 +93,6 @@ typedef enum OTLWF_DEVICE_CAPABILITY
     // Device supports the energy scan command.
     OTLWF_DEVICE_CAP_RADIO_ENERGY_SCAN                          = 1 << 3,
 
-    // Device supports sleeping. If the device supports sleeping, it is assumed to
-    // default to the sleep state on bring up.
-    OTLWF_DEVICE_CAP_RADIO_SLEEP                                = 1 << 4,
-
     // Device support Net & Thread commands.
     OTLWF_DEVICE_CAP_THREAD_1_0                                 = 1 << 16,
 
@@ -115,7 +111,28 @@ typedef enum OTLWF_DEVICE_STATUS
 #define OT_EVENT_TIMER_RUNNING      1
 #define OT_EVENT_TIMER_FIRED        2
 
-#define MAX_PENDING_MAC_SIZE 32 // TODO
+#if OPENTHREAD_CONFIG_PLATFORM_MESSAGE_MANAGEMENT
+
+typedef struct BufferPool
+{
+    struct BufferPool* Next;
+    uint8_t Buffers[0];
+
+} BufferPool;
+
+enum
+{
+    kPageSize                = PAGE_SIZE,
+    kPagesPerBufferPool      = 1,
+    kMaxPagesForBufferPools  = 64,
+    kMaxBytesForBufferPools  = kPageSize * kMaxPagesForBufferPools,
+
+    kEstimatedBufferSize     = 128,         // sizeof(Thread::Buffer)
+    kEstimatedBufferPoolSize = ((kPageSize * kPagesPerBufferPool) - sizeof(BufferPool)) / kEstimatedBufferSize,
+    kEstimatedMaxBuffers     = kMaxPagesForBufferPools * kEstimatedBufferPoolSize
+};
+
+#endif
 
 //
 // Define the filter struct
@@ -148,12 +165,6 @@ typedef struct _MS_FILTER
     // Miniport Link State
     //
     NDIS_LINK_STATE                 MiniportLinkState;
-    
-    //
-    // Pending OID Handling
-    //
-    NDIS_SPIN_LOCK                  PendingOidRequestLock;
-    PNDIS_OID_REQUEST               PendingOidRequest;
 
     //
     // External references management
@@ -170,9 +181,11 @@ typedef struct _MS_FILTER
     USHORT                          cmdTIDsInUse;
     spinel_tid_t                    cmdNextTID;
     NDIS_HANDLE                     cmdNblPool;
-#if DBG
+#ifdef COMMAND_INIT_RETRY
     ULONG                           cmdInitTryCount;
 #endif
+    otPlatResetReason               cmdResetReason;
+    KEVENT                          cmdResetCompleteEvent;
 
     //
     // Device Capabilities / State
@@ -217,6 +230,11 @@ typedef struct _MS_FILTER
         KEVENT                      EventWorkerThreadEnergyScanComplete;
 
         //
+        // OpenThread Settings Management
+        //
+        HANDLE                      otSettingsRegKey;
+
+        //
         // OpenThread state management
         //
         otDeviceRole                otCachedRole;
@@ -248,10 +266,15 @@ typedef struct _MS_FILTER
         uint16_t                    otShortAddress;
 
         BOOLEAN                     otPendingMacOffloadEnabled;
-        uint8_t                     otPendingShortAddressCount;
-        uint16_t                    otPendingShortAddresses[MAX_PENDING_MAC_SIZE];
-        uint8_t                     otPendingExtendedAddressCount;
-        uint64_t                    otPendingExtendedAddresses[MAX_PENDING_MAC_SIZE];
+
+#if OPENTHREAD_CONFIG_PLATFORM_MESSAGE_MANAGEMENT
+        uint16_t                    otBufferSize;               // Bytes in a single buffer
+        uint16_t                    otBufferPoolByteSize;       // Bytes in a buffer pool
+        uint16_t                    otBufferPoolBufferCount;    // Number of buffers in a pool
+        uint16_t                    otBuffersLeft;              // Number of buffers left to return
+        BufferPool*                 otBufferPoolHead;           // List of buffer pools
+        otMessage*                  otFreeBuffers;              // List of buffers to return
+#endif
 
 #if DEBUG_ALLOC
         // Used for tracking memory allocations
@@ -263,9 +286,18 @@ typedef struct _MS_FILTER
 #endif
 
         //
+        // OpenThread Joiner Vendor Info
+        //
+        char otVendorName[OPENTHREAD_VENDOR_NAME_MAX_LENGTH + 1];
+        char otVendorModel[OPENTHREAD_VENDOR_MODEL_MAX_LENGTH + 1];
+        char otVendorSwVersion[OPENTHREAD_VENDOR_SW_VERSION_MAX_LENGTH + 1];
+        char otVendorData[OPENTHREAD_VENDOR_DATA_MAX_LENGTH + 1];
+
+        //
         // OpenThread context buffer
         //
         otInstance*                 otCtx;
+        size_t                      otInstanceSize;
         PUCHAR                      otInstanceBuffer;
     };
     struct // Tunnel Mode Variables

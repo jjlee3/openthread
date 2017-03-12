@@ -36,20 +36,20 @@ GetInterfaceCompartmentID(
     )
 {  
     COMPARTMENT_ID CompartmentID = UNSPECIFIED_COMPARTMENT_ID;  
-  
-    NTSTATUS Status =  
-        NsiGetParameter(  
-            NsiActive,  
-            &NPI_MS_NDIS_MODULEID,  
-            NdisNsiObjectInterfaceInformation,  
-            pNetLuid, sizeof(*pNetLuid),  
-            NsiStructRoDynamic,  
-            &CompartmentID, sizeof(CompartmentID),  
+
+    NTSTATUS Status =
+        NsiGetParameter(
+            NsiActive,
+            &NPI_MS_NDIS_MODULEID,
+            NdisNsiObjectInterfaceInformation,
+            pNetLuid, sizeof(*pNetLuid),
+            NsiStructRoDynamic,
+            &CompartmentID, sizeof(CompartmentID),
             FIELD_OFFSET(NDIS_NSI_INTERFACE_INFORMATION_ROD, CompartmentId)
-            );  
-  
-    return (NT_SUCCESS(Status) ? CompartmentID : DEFAULT_COMPARTMENT_ID);  
-}  
+            );
+
+    return (NT_SUCCESS(Status) ? CompartmentID : DEFAULT_COMPARTMENT_ID);
+}
 
 _Use_decl_annotations_
 NDIS_STATUS
@@ -191,9 +191,6 @@ N.B.:  FILTER can use NdisRegisterDeviceEx to create a device, so the upper
 
         // Filter initially in Paused state
         pFilter->State = FilterPaused;
-
-        // Initialize PendingOidRequest lock
-        NdisAllocateSpinLock(&pFilter->PendingOidRequestLock);
 
         // Initialize rundowns to disabled with no active references
         pFilter->ExternalRefs.Count = EX_RUNDOWN_ACTIVE;
@@ -474,7 +471,7 @@ Return Value:
     }
 
     // Query the device capabilities
-    NtStatus = otLwfCmdGetProp(pFilter, SpinelCapsDataBuffer, SPINEL_PROP_CAPS, SPINEL_DATATYPE_DATA_S, &SpinelCapsPtr, &SpinelCapsLen);
+    NtStatus = otLwfCmdGetProp(pFilter, &SpinelCapsDataBuffer, SPINEL_PROP_CAPS, SPINEL_DATATYPE_DATA_S, &SpinelCapsPtr, &SpinelCapsLen);
     if (!NT_SUCCESS(NtStatus))
     {
         NdisStatus = NDIS_STATUS_NOT_SUPPORTED;
@@ -483,18 +480,21 @@ Return Value:
     }
 
     // Iterate and process returned capabilities
+    NT_ASSERT(SpinelCapsDataBuffer);
     while (SpinelCapsLen > 0)
     {
         ULONG SpinelCap = 0;
         spinel_ssize_t len = spinel_datatype_unpack(SpinelCapsPtr, SpinelCapsLen, SPINEL_DATATYPE_UINT_PACKED_S, &SpinelCap);
         if (len < 1) break;
         SpinelCapsLen -= (spinel_size_t)len;
+        SpinelCapsPtr += len;
 
         switch (SpinelCap)
         {
         case SPINEL_CAP_MAC_RAW:
             pFilter->DeviceCapabilities |= OTLWF_DEVICE_CAP_RADIO;
             pFilter->DeviceCapabilities |= OTLWF_DEVICE_CAP_RADIO_ACK_TIMEOUT;
+            pFilter->DeviceCapabilities |= OTLWF_DEVICE_CAP_RADIO_MAC_RETRY_AND_COLLISION_AVOIDANCE;
             pFilter->DeviceCapabilities |= OTLWF_DEVICE_CAP_RADIO_ENERGY_SCAN;
             break;
         case SPINEL_CAP_NET_THREAD_1_0:
