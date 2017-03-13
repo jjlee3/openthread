@@ -50,12 +50,15 @@ using namespace Windows::UI::Xaml::Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
+std::atomic<int> ClientControl::_clientPort{ TalkConsts::DEF_CLIENT_PORT_INIT };
+
 ClientControl::ClientControl()
 {
     InitializeComponent();
 
     ServerPort->Text = DEF_SERVER_PORT.ToString();
-    ClientPort->Text = DEF_PORT.ToString();
+    auto clientPort = _clientPort.load();
+    ClientPort->Text = clientPort.ToString();
 }
 
 void
@@ -101,8 +104,8 @@ ClientControl::Connect_Click(
 
         clientArgs->ServerHostName = ref new HostName(serverIP);
 
+        if (ServerPort->Text->IsEmpty()) Exception::CreateException(E_INVALIDARG, "No Server Port");
         clientArgs->ServerPort = ServerPort->Text;
-        if (clientArgs->ServerPort->IsEmpty()) clientArgs->ServerPort = DEF_SERVER_PORT.ToString();
 
         auto clientIP = ClientIP->Text;
         if (clientIP->IsEmpty()) Exception::CreateException(E_INVALIDARG, "No Client IP");
@@ -123,11 +126,15 @@ ClientControl::Connect_Click(
 
         clientArgs->ClientHostName = ref new HostName(clientIP);
 
+        if (ClientPort->Text->IsEmpty()) Exception::CreateException(E_INVALIDARG, "No Client Port");
         clientArgs->ClientPort = ClientPort->Text;
-        if (clientArgs->ClientPort->IsEmpty()) clientArgs->ClientPort = DEF_PORT.ToString();
 
         auto cleintContext = Factory::CreateClientContext(_notify, clientArgs, _protocol);
         cleintContext->Connect_Click(sender, e);
+        {
+            auto clientPort = ++_clientPort;
+            ClientPort->Text = clientPort.ToString();
+        }
     }
     catch (Exception^ ex)
     {

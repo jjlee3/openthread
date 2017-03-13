@@ -100,8 +100,8 @@ ServerControl::Listen_Click(
 
         listenerArgs->ServerHostName = ref new HostName(serverIP);
 
+        if (ServerPort->Text->IsEmpty()) Exception::CreateException(E_INVALIDARG, "No Server Port");
         listenerArgs->ServerPort = ServerPort->Text;
-        if (listenerArgs->ServerPort->IsEmpty()) listenerArgs->ServerPort = DEF_PORT.ToString();
 
         auto listenerContext = Factory::CreateListenerContext(_notify, listenerArgs, _protocol);
         listenerContext->Listen_Click(sender, e);

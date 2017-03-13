@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "ClientControl.g.h"
 #include "TalkConsts.h"
 #include "IAsyncThreadNotify.h"
@@ -48,7 +49,6 @@ public:
     void ProtocolChanged(Protocol protocol);
 
 private:
-    static constexpr unsigned short DEF_PORT = TalkConsts::DEF_CLIENT_PORT;
     static constexpr unsigned short DEF_SERVER_PORT = TalkConsts::DEF_SERVER_PORT;
 
     void Connect_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
@@ -57,9 +57,10 @@ private:
 
     void Exit_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 
-    IAsyncThreadNotify^  _notify;
-    IMainPageUIElements^ _mainPageUIElements;
-    Protocol             _protocol;
+    IAsyncThreadNotify^     _notify;
+    IMainPageUIElements^    _mainPageUIElements;
+    Protocol                _protocol;
+    static std::atomic<int> _clientPort;
 };
 
 } // namespace Thread
